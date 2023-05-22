@@ -62,23 +62,23 @@ class RTGraph:
             print()
 
     def create_csv_file(self):
-        all_users_that_retweeted = tools.load_pickle(self.output_path + r"bin\all_users_that_retweeted")
-        list_of_pairs = list()
-        toral_l = len(all_users_that_retweeted)
-        previous_ = 0
-        for idx, user_id in enumerate(all_users_that_retweeted):
-            user_document = self.col_superdocs.find_one({"author_id": user_id})
-            if int(idx/toral_l) != previous_:
-                print(int(idx/toral_l))
-            for rt_user_id in user_document["rt_authors_list"]:
-                list_of_pairs.append((user_id, rt_user_id))
-        tools.save_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates", list_of_pairs)
-        exit()
-        for x, y in Counter(list_of_pairs).items():
-            print()
 
+        # This part of code creates pairs of source user and retweeted user.
+        # /////////////////////////////////////////////////
+        # all_users_that_retweeted = tools.load_pickle(self.output_path + r"bin\all_users_that_retweeted")
+        # list_of_pairs = list()
+        # for idx, user_id in enumerate(all_users_that_retweeted):
+        #     user_document = self.col_superdocs.find_one({"author_id": user_id})
+        #     for rt_user_id in user_document["rt_authors_list"]:
+        #         list_of_pairs.append((user_id, rt_user_id))
+        # tools.save_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates", list_of_pairs)
+
+        list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates")
         with open(self.output_path + r"Graph_files\retweet_network_all.csv", "w") as csv_file:
             csv_file.write("source, target, weight\n")
+            for rt_pair, num_of_rts in Counter(list_of_pairs).items():
+                csv_file.write(str(rt_pair[0]) + ", " + str(rt_pair[1]) + ", " + str(num_of_rts) + "\n")
+                # print()
 
     def digraph_test(self):
         for i in range(10):
@@ -99,6 +99,8 @@ if __name__ == "__main__":
     # climate_rt_graph.mongo_tests()
     # climate_rt_graph.populate_network()
     climate_rt_graph.create_csv_file()
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\\"
+    #                       r"I_O\bin\list_of_rt_edges_with_duplicates")
 
     print()
 
