@@ -1,4 +1,5 @@
 import os
+import re
 from pymongo import MongoClient, ASCENDING, errors
 # import tweepy is needed because we load tweepy objects/pickles
 import tweepy
@@ -63,7 +64,6 @@ class RTGraph:
             print()
 
     def create_csv_file(self):
-
         # This part of code creates pairs of source user and retweeted user.
         # /////////////////////////////////////////////////
         # all_users_that_retweeted = tools.load_pickle(self.output_path + r"bin\all_users_that_retweeted")
@@ -74,17 +74,27 @@ class RTGraph:
         #         list_of_pairs.append((user_id, rt_user_id))
         # tools.save_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates", list_of_pairs)
 
-        list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates")
-        with open(self.output_path + r"Graph_files\retweet_network_all.csv", "w") as csv_file:
+        # list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates")
+        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs")
+        # We will keep only alphanumerics
+        regex = re.compile('[^a-zA-Z0-9]')
+        with open(self.output_path + r"Graph_files\retweet_network_top_10_with_author_names.csv",
+                  "w", encoding='utf-8') as csv_file:
             csv_file.write("source, target, weight\n")
             counter = 0
-            for rt_pair, num_of_rts in Counter(list_of_pairs).items():
+            for rt_pair, num_of_rts in list_of_top_pairs.items():
                 print(counter)
                 counter += 1
-                csv_file.write(str(rt_pair[0]) + ", " + str(rt_pair[1]) + ", " + str(num_of_rts) + "\n")
+                if self.col_tweets.find_one({"author_id": rt_pair[0]}):
+                    name_pair0 = self.col_tweets.find_one({"author_id": rt_pair[0]})["author_username"]
+                    name_pair0 = regex.sub('', name_pair0)
+                    if self.col_tweets.find_one({"author_id": rt_pair[1]}):
+                        name_pair1 = self.col_tweets.find_one({"author_id": rt_pair[1]})["author_username"]
+                        name_pair1 = regex.sub('', name_pair1)
+                        csv_file.write(name_pair0 + ", " + name_pair1 + ", " + str(num_of_rts) + "\n")
                 # print()
 
-    def digraph_creation(self):
+    def connections_of_authorities(self):
         set_of_all_nodes = set()
         list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates")
         for rt_pair in list_of_pairs:
@@ -94,15 +104,22 @@ class RTGraph:
         for rt_pair, num_of_rts in counted_list_of_pairs.items():
             self.directed_graph.add_edge(rt_pair[0], rt_pair[1], weight=num_of_rts)
         in_degrees = list(self.directed_graph.in_degree)
+        # This is 10% of all the nodes on the retweet network.
         top_in_degrees = sorted(in_degrees, key=itemgetter(1), reverse=True)[:180001]
+        # indexing for lookups
         top_users = {s[0] for s in top_in_degrees}
         list_of_top_pairs = dict()
-        for top_user in top_in_degrees:
+        for idx, top_user in enumerate(top_in_degrees):
+            print(idx)
             for rt_pair, num_of_rts in counted_list_of_pairs.items():
                 if top_user[0] == rt_pair[0] and rt_pair[1] in top_users:
                     list_of_top_pairs[rt_pair] = num_of_rts
         tools.save_pickle(self.output_path + r"bin\list_of_top_pairs", list_of_top_pairs)
-        print()
+
+    def creation_of_digraph(self):
+        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs")
+        for rt_pair, num_of_rts in list_of_top_pairs.items():
+            self.directed_graph.add_edge(rt_pair[0], rt_pair[1], weight=num_of_rts)
 
     def mongo_tests(self):
         dumy_list = [1, 2, 3, 4, 5, 6]
@@ -116,8 +133,8 @@ if __name__ == "__main__":
     # climate_rt_graph.seek_retweets()
     # climate_rt_graph.mongo_tests()
     # climate_rt_graph.populate_network()
-    # climate_rt_graph.create_csv_file()
-    climate_rt_graph.digraph_creation()
+    climate_rt_graph.create_csv_file()
+    # climate_rt_graph.creation_of_digraph()
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\bin\\"
     #                       r"authors_with_more_than_10_tweets")
 
