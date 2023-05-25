@@ -124,9 +124,12 @@ class RTGraph:
                 if top_user[0] == rt_pair[0] and rt_pair[1] in top_users:
                     list_of_top_pairs[rt_pair] = num_of_rts
         # removing self retweets.
+        pairs_to_be_removed = list()
         for top_pair in list_of_top_pairs:
             if top_pair[0] == top_pair[1]:
-                del list_of_top_pairs[top_pair]
+                pairs_to_be_removed.append(top_pair)
+        for t_pair in pairs_to_be_removed:
+            del list_of_top_pairs[t_pair]
         tools.save_pickle(self.output_path + r"bin\list_of_top_pairs_5_percent_no_self_rt", list_of_top_pairs)
 
     def creation_of_digraph(self):
