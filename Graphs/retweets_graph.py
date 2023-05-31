@@ -75,10 +75,10 @@ class RTGraph:
         # tools.save_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates", list_of_pairs)
 
         # list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates")
-        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_5_percent")
+        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_5_percent_no_self_rt")
         # We will keep only alphanumerics
         regex = re.compile('[^a-zA-Z0-9]')
-        with open(self.output_path + r"Graph_files\retweet_network_top_5_with_author_names.csv",
+        with open(self.output_path + r"Graph_files\retweet_network_top_5_with_author_names_no_retweets.csv",
                   "w", encoding='utf-8') as csv_file:
             csv_file.write("source, target, weight\n")
             counter = 0
@@ -149,11 +149,12 @@ if __name__ == "__main__":
     # climate_rt_graph.seek_retweets()
     # climate_rt_graph.mongo_tests()
     # climate_rt_graph.populate_network()
-    climate_rt_graph.connections_of_authorities()
-    # climate_rt_graph.create_csv_file()
+    # climate_rt_graph.connections_of_authorities()
+
+    climate_rt_graph.create_csv_file()
     # climate_rt_graph.creation_of_digraph()
-    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\bin\\"
-    #                       r"authors_with_more_than_10_tweets")
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\\"
+    #                       r"bin\list_of_top_pairs_5_percent_no_self_rt")
 
     print()
 
