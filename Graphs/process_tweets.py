@@ -108,7 +108,6 @@ class TweetArchiver:
             for filename in os.listdir(self.input_path + str(folder_index)):
                 tweet_records = tools.load_pickle(self.input_path + str(folder_index) + r"\\" + filename)
                 for tweet_obj in tweet_records:
-                    print()
                     # if tweet_obj.id not in set_of_tweets:
                     #     user_to_tweets_posted_index[tweet_obj.author.id].append(tweet_obj.id)
                     #     if tweet_obj.author.id not in user_id_to_username_index:

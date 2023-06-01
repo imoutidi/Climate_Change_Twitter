@@ -65,6 +65,36 @@ class RTGraph:
                 self.directed_graph.add_edge(user_id, rt_user_id)
             print()
 
+    def create_graph_files(self):
+        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_1_percent_no_self_rt")
+        user_indexes = tools.load_pickle(self.output_path + r"Indexes\user_id_to_screen_name")
+        # nodes that are part on the top percentage based in in-degree.
+        percent_nodes = set()
+
+        # We create first the edge csv file because we also create an index, so we can know which
+        # nodes are part of the X percent network we are working at the given time.
+        # Creating the edge file
+        with open(self.output_path + r"Graph_files\1_percent\1p_edges.csv", "w") as edge_file:
+            edge_file.write("Source,Target,Weight\n")
+            counter = 0
+            for rt_pair, num_of_rts in list_of_top_pairs.items():
+                percent_nodes.add(rt_pair[0])
+                percent_nodes.add(rt_pair[1])
+                print(counter)
+                counter += 1
+                edge_file.write(str(rt_pair[0]) + "," + str(rt_pair[1]) + "," + str(num_of_rts) + "\n")
+
+        # Creating the node file first
+        with open(self.output_path + r"Graph_files\1_percent\1p_nodes.csv", "w") as node_file:
+            node_file.write("id,label\n")
+            for node in percent_nodes:
+                if node in user_indexes:
+                    node_file.write(str(node) + "," + user_indexes[node] + "\n")
+                else:
+                    node_file.write(str(node) + "," + str(node) + "\n")
+
+
+    # This will be deprecated
     def create_csv_file(self):
         # This part of code creates pairs of source user and retweeted user.
         # /////////////////////////////////////////////////
@@ -90,8 +120,6 @@ class RTGraph:
                 if self.col_tweets.find_one({"author_id": rt_pair[0]}):
                     name_pair0 = self.col_tweets.find_one({"author_id": rt_pair[0]})["author_username"]
                     name_pair0 = regex.sub('', name_pair0)
-                    # if the regex cleared all character and the username is now blank we
-                    # insert the author_id as label.
                     if len(name_pair0) == 0:
                         name_pair0 = str(rt_pair[0])
                     if self.col_tweets.find_one({"author_id": rt_pair[1]}):
@@ -155,13 +183,13 @@ class RTGraph:
         print()
 
 
-
 if __name__ == "__main__":
     climate_rt_graph = RTGraph()
     # climate_rt_graph.seek_retweets()
     # climate_rt_graph.mongo_tests()
     # climate_rt_graph.populate_network()
-    climate_rt_graph.connections_of_authorities()
+    # climate_rt_graph.connections_of_authorities()
+    climate_rt_graph.create_graph_files()
     # climate_rt_graph.create_csv_file()
     # climate_rt_graph.creation_of_digraph()
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\\"
