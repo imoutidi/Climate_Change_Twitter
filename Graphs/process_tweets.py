@@ -98,7 +98,7 @@ class TweetArchiver:
             print(key_error)
             print(tweet_id)
 
-    def working_on_users(self):
+    def indexing_users(self):
         # need to parse all tweets again to create user index of tweet ids
         set_of_tweets = set()
         user_to_tweets_posted_index = defaultdict(list)
@@ -108,13 +108,18 @@ class TweetArchiver:
             for filename in os.listdir(self.input_path + str(folder_index)):
                 tweet_records = tools.load_pickle(self.input_path + str(folder_index) + r"\\" + filename)
                 for tweet_obj in tweet_records:
-                    if tweet_obj.id not in set_of_tweets:
-                        user_to_tweets_posted_index[tweet_obj.author.id].append(tweet_obj.id)
-                        if tweet_obj.author.id not in user_id_to_username_index:
-                            user_id_to_username_index[tweet_obj.author.id] = tweet_obj.author.name
+                    print()
+                    # if tweet_obj.id not in set_of_tweets:
+                    #     user_to_tweets_posted_index[tweet_obj.author.id].append(tweet_obj.id)
+                    #     if tweet_obj.author.id not in user_id_to_username_index:
+                    #         user_id_to_username_index[tweet_obj.author.id] = tweet_obj.author.name
+                    if tweet_obj.author.id not in user_id_to_username_index:
+                        user_id_to_username_index[tweet_obj.author.id] = tweet_obj.author.screen_name
+
         # save indexes
-        tools.save_pickle(self.output_path + r"Indexes\user_id_to_tweets_ids_posted", user_to_tweets_posted_index)
-        tools.save_pickle(self.output_path + r"Indexes\user_id_to_username", user_id_to_username_index)
+        # tools.save_pickle(self.output_path + r"Indexes\user_id_to_tweets_ids_posted", user_to_tweets_posted_index)
+        # tools.save_pickle(self.output_path + r"Indexes\user_id_to_username", user_id_to_username_index)
+        tools.save_pickle(self.output_path + r"Indexes\user_id_to_screen_name", user_id_to_username_index)
 
     def create_super_documents(self):
         user_to_tweets_posted_index = tools.load_pickle(self.output_path + r"Indexes\user_id_to_tweets_ids_posted")
@@ -226,5 +231,8 @@ if __name__ == "__main__":
     # climate_change_archiver.doc_vectorizer("tt")
     # climate_change_archiver.calculate_text_bert_vectors()
     # climate_change_archiver.manual_adding_records()
-    climate_change_archiver.gather_user_ids_with_many_tweets(10)
+    # climate_change_archiver.gather_user_ids_with_many_tweets(10)
+    climate_change_archiver.indexing_users()
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\\"
+    #                       r"Indexes\user_id_to_username")
     print()

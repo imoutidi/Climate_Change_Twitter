@@ -8,6 +8,8 @@ import networkx as nx
 from collections import Counter
 from operator import itemgetter
 
+import backboning
+
 
 class RTGraph:
 
@@ -75,10 +77,10 @@ class RTGraph:
         # tools.save_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates", list_of_pairs)
 
         # list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates")
-        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_5_percent_no_self_rt")
+        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_10_percent_no_self_rt")
         # We will keep only alphanumerics
         regex = re.compile('[^a-zA-Z0-9]')
-        with open(self.output_path + r"Graph_files\retweet_network_top_5_with_author_names_no_retweets.csv",
+        with open(self.output_path + r"Graph_files\retweet_network_top_10_with_author_names_no_retweets.csv",
                   "w", encoding='utf-8') as csv_file:
             csv_file.write("source, target, weight\n")
             counter = 0
@@ -114,7 +116,7 @@ class RTGraph:
             self.directed_graph.add_edge(rt_pair[0], rt_pair[1], weight=num_of_rts)
         in_degrees = list(self.directed_graph.in_degree)
         # This is 5% of all the nodes on the retweet network.
-        top_in_degrees = sorted(in_degrees, key=itemgetter(1), reverse=True)[:90000]
+        top_in_degrees = sorted(in_degrees, key=itemgetter(1), reverse=True)[:180]
         # indexing for lookups
         top_users = {s[0] for s in top_in_degrees}
         list_of_top_pairs = dict()
@@ -128,14 +130,16 @@ class RTGraph:
         for top_pair in list_of_top_pairs:
             if top_pair[0] == top_pair[1]:
                 pairs_to_be_removed.append(top_pair)
+        print()
         for t_pair in pairs_to_be_removed:
             del list_of_top_pairs[t_pair]
-        tools.save_pickle(self.output_path + r"bin\list_of_top_pairs_5_percent_no_self_rt", list_of_top_pairs)
+        # tools.save_pickle(self.output_path + r"bin\list_of_top_pairs_10_percent_no_self_rt", list_of_top_pairs)
 
     def creation_of_digraph(self):
-        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs")
+        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_1_percent_no_self_rt")
         for rt_pair, num_of_rts in list_of_top_pairs.items():
             self.directed_graph.add_edge(rt_pair[0], rt_pair[1], weight=num_of_rts)
+
 
     def mongo_tests(self):
         dumy_list = [1, 2, 3, 4, 5, 6]
@@ -143,15 +147,22 @@ class RTGraph:
         collection = db.test_base
         collection.insert_one({"author_id": 1, "author_username": "gg", "id_list": dumy_list})
 
+    def backboning_graph(self):
+        table, nnodes, nnedges = backboning.read("/path/to/input", "column_of_interest")
+        nc_table = backboning.noise_corrected(table)
+        nc_backbone = backboning.thresholding(nc_table, threshold_value)
+        backboning.write(nc_backbone, "network_name", "nc", "/path/to/output")
+        print()
+
+
 
 if __name__ == "__main__":
     climate_rt_graph = RTGraph()
     # climate_rt_graph.seek_retweets()
     # climate_rt_graph.mongo_tests()
     # climate_rt_graph.populate_network()
-    # climate_rt_graph.connections_of_authorities()
-
-    climate_rt_graph.create_csv_file()
+    climate_rt_graph.connections_of_authorities()
+    # climate_rt_graph.create_csv_file()
     # climate_rt_graph.creation_of_digraph()
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\\"
     #                       r"bin\list_of_top_pairs_5_percent_no_self_rt")
