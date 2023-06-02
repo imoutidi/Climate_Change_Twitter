@@ -9,6 +9,7 @@ from collections import Counter
 from operator import itemgetter
 
 import backboning
+import graph_tools
 
 
 class RTGraph:
@@ -132,11 +133,7 @@ class RTGraph:
         for rt_pair, num_of_rts in list_of_top_pairs.items():
             self.directed_graph.add_edge(rt_pair[0], rt_pair[1], weight=num_of_rts)
 
-    def mongo_tests(self):
-        dumy_list = [1, 2, 3, 4, 5, 6]
-        db = self.client.Climate_Change_Tweets
-        collection = db.test_base
-        collection.insert_one({"author_id": 1, "author_username": "gg", "id_list": dumy_list})
+
 
     def create_graph_file_for_backboning(self):
         list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_10_percent_no_self_rt")
@@ -154,39 +151,10 @@ class RTGraph:
                                                  r"I_O\Datasets\Climate_Changed\I_O\Graph_files\\"
                                                  r"retweet_network_all_with_author_names_no_retweets.csv", "weight")
         nc_table = backboning.noise_corrected(table)
-        nc_backbone = backboning.thresholding(nc_table, 1)
+        nc_backbone = backboning.thresholding(nc_table, 2)
         backboning.write(nc_backbone, "climate_retweet_network_backbone",
                          "nc", r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\\"
-                         r"Climate_Changed\I_O\Graph_files\\retweet_network_all_no_retweets_backbone.csv")
-
-    # This will be deprecated (it replaced author ids with selected username which contain a lot of
-    # non utf-8 characters and duplicate names.)
-    def create_csv_file(self):
-
-        # list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_rt_edges_with_duplicates")
-        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_10_percent_no_self_rt")
-        # We will keep only alphanumerics
-        regex = re.compile('[^a-zA-Z0-9]')
-        with open(self.output_path + r"Graph_files\retweet_network_top_10_with_author_names_no_retweets.csv",
-                  "w", encoding='utf-8') as csv_file:
-            csv_file.write("source, target, weight\n")
-            counter = 0
-            for rt_pair, num_of_rts in list_of_top_pairs.items():
-                print(counter)
-                counter += 1
-                if self.collection_tweets.find_one({"author_id": rt_pair[0]}):
-                    name_pair0 = self.collection_tweets.find_one({"author_id": rt_pair[0]})["author_username"]
-                    name_pair0 = regex.sub('', name_pair0)
-                    if len(name_pair0) == 0:
-                        name_pair0 = str(rt_pair[0])
-                    if self.collection_tweets.find_one({"author_id": rt_pair[1]}):
-                        name_pair1 = self.collection_tweets.find_one({"author_id": rt_pair[1]})["author_username"]
-                        name_pair1 = regex.sub('', name_pair1)
-                        # if the regex cleared all character and the username is now blank we
-                        # insert the author_id as label.
-                        if len(name_pair1) == 0:
-                            name_pair1 = str(rt_pair[1])
-                        csv_file.write(name_pair0 + ", " + name_pair1 + ", " + str(num_of_rts) + "\n")
+                         r"Climate_Changed\I_O\Graph_files\\")
 
 
 if __name__ == "__main__":
@@ -195,10 +163,13 @@ if __name__ == "__main__":
     # climate_rt_graph.mongo_tests()
     # climate_rt_graph.populate_network()
     # climate_rt_graph.connections_of_authorities()
-    # climate_rt_graph.create_graph_file_for_backboning()
+
     # climate_rt_graph.create_graph_files()
-    climate_rt_graph.create_csv_file()
+    # climate_rt_graph.create_csv_file()
     # climate_rt_graph.creation_of_digraph()
+
+    # climate_rt_graph.create_graph_file_for_backboning()
+    climate_rt_graph.backboning_graph()
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\\"
     #                       r"bin\list_of_top_pairs_5_percent_no_self_rt")
 
