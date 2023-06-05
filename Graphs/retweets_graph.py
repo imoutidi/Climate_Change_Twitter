@@ -66,8 +66,9 @@ class RTGraph:
                 self.directed_graph.add_edge(user_id, rt_user_id)
             print()
 
-    def create_graph_files(self):
-        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_1_percent_no_self_rt")
+    def create_graph_files(self, percentage):
+        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_" + str(percentage) +
+                                              r"_percent_no_self_rt")
         user_indexes = tools.load_pickle(self.output_path + r"Indexes\user_id_to_screen_name")
         # nodes that are part on the top percentage based in in-degree.
         percent_nodes = set()
@@ -75,7 +76,8 @@ class RTGraph:
         # We create first the edge csv file because we also create an index, so we can know which
         # nodes are part of the X percent network we are working at the given time.
         # Creating the edge file
-        with open(self.output_path + r"Graph_files\1_percent\1p_edges.csv", "w") as edge_file:
+        with open(self.output_path + r"Graph_files\\" + str(percentage) + r"_percent\\" + str(percentage)
+                  + r"p_edges.csv", "w") as edge_file:
             edge_file.write("Source,Target,Weight\n")
             counter = 0
             for rt_pair, num_of_rts in list_of_top_pairs.items():
@@ -86,7 +88,8 @@ class RTGraph:
                 edge_file.write(str(rt_pair[0]) + "," + str(rt_pair[1]) + "," + str(num_of_rts) + "\n")
 
         # Creating the node file
-        with open(self.output_path + r"Graph_files\1_percent\1p_nodes.csv", "w") as node_file:
+        with open(self.output_path + r"Graph_files\\" + str(percentage) + r"_percent\\" + str(percentage)
+                  + r"p_nodes.csv", "w") as node_file:
             node_file.write("id,label\n")
             for node in percent_nodes:
                 if node in user_indexes:
@@ -106,7 +109,7 @@ class RTGraph:
         for rt_pair, num_of_rts in counted_list_of_pairs.items():
             self.directed_graph.add_edge(rt_pair[0], rt_pair[1], weight=num_of_rts)
         in_degrees = list(self.directed_graph.in_degree)
-        # This is 5% of all the nodes on the retweet network.
+        # This is X% of all the nodes on the retweet network.
         top_in_degrees = sorted(in_degrees, key=itemgetter(1), reverse=True)[:18000]
         # indexing for lookups
         top_users = {s[0] for s in top_in_degrees}
@@ -133,8 +136,6 @@ class RTGraph:
         for rt_pair, num_of_rts in list_of_top_pairs.items():
             self.directed_graph.add_edge(rt_pair[0], rt_pair[1], weight=num_of_rts)
 
-
-
     def create_graph_file_for_backboning(self):
         list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_10_percent_no_self_rt")
         with open(self.output_path + r"Graph_files\retweet_network_all_with_author_names_no_retweets.csv",
@@ -151,7 +152,7 @@ class RTGraph:
                                                  r"I_O\Datasets\Climate_Changed\I_O\Graph_files\\"
                                                  r"retweet_network_all_with_author_names_no_retweets.csv", "weight")
         nc_table = backboning.noise_corrected(table)
-        nc_backbone = backboning.thresholding(nc_table, 2)
+        nc_backbone = backboning.thresholding(nc_table, 100000)
         backboning.write(nc_backbone, "climate_retweet_network_backbone",
                          "nc", r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\\"
                          r"Climate_Changed\I_O\Graph_files\\")
@@ -164,14 +165,9 @@ if __name__ == "__main__":
     # climate_rt_graph.populate_network()
     # climate_rt_graph.connections_of_authorities()
 
-    # climate_rt_graph.create_graph_files()
-    # climate_rt_graph.create_csv_file()
+    climate_rt_graph.create_graph_files(percentage=100)
     # climate_rt_graph.creation_of_digraph()
 
     # climate_rt_graph.create_graph_file_for_backboning()
-    climate_rt_graph.backboning_graph()
-    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\\"
-    #                       r"bin\list_of_top_pairs_5_percent_no_self_rt")
-
-    print()
+    # climate_rt_graph.backboning_graph()
 
