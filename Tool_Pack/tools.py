@@ -1,4 +1,5 @@
 import pickle
+import csv
 import time
 import datetime
 from datetime import date, timedelta
@@ -49,6 +50,17 @@ def timestamp_to_datetime_obj(timestamp):
     # Convert the timestamp to a datetime object in the local timezone
     datetime_obj = datetime.datetime.fromtimestamp(timestamp)
     return datetime_obj
+
+def line_count(file_path):
+    counter = 1
+    with open(file_path) as node_file:
+        node_reader = csv.reader(node_file, delimiter=",")
+        # Skipping the headers
+        next(node_reader)
+        for node_info in node_reader:
+            counter += 1
+        print("Number of lines: " + str(counter))
+    return counter
 
 
 def save_pickle(path, data_structure):

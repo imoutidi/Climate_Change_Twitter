@@ -1,5 +1,5 @@
 import os
-import re
+import csv
 from pymongo import MongoClient, ASCENDING, errors
 # import tweepy is needed because we load tweepy objects/pickles
 import tweepy
@@ -137,25 +137,48 @@ class RTGraph:
             self.directed_graph.add_edge(rt_pair[0], rt_pair[1], weight=num_of_rts)
 
     def create_graph_file_for_backboning(self):
-        list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_10_percent_no_self_rt")
+        list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_all_pairs_no_self_rt")
         with open(self.output_path + r"Graph_files\retweet_network_all_with_author_names_no_retweets.csv",
                   "w", encoding='utf-8') as csv_file:
             csv_file.write("src\ttrg\tweight\n")
             for pair, weight in list_of_pairs.items():
                 csv_file.write(str(pair[0]) + "\t" + str(pair[1]) + "\t" + str(weight) + "\n")
 
-        print()
-
-    @staticmethod
-    def backboning_graph():
-        table, nnodes, nnedges = backboning.read(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
-                                                 r"I_O\Datasets\Climate_Changed\I_O\Graph_files\\"
-                                                 r"retweet_network_all_with_author_names_no_retweets.csv", "weight")
+    def backboning_graph(self):
+        threshold = 100000
+        table, nnodes, nnedges = backboning.read(self.output_path
+                                                 + r"\Graph_files\\"
+                                                   r"retweet_network_all_with_author_names_no_retweets.csv",
+                                                 "weight")
         nc_table = backboning.noise_corrected(table)
-        nc_backbone = backboning.thresholding(nc_table, 100000)
-        backboning.write(nc_backbone, "climate_retweet_network_backbone",
-                         "nc", r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\\"
-                         r"Climate_Changed\I_O\Graph_files\\")
+        nc_backbone = backboning.thresholding(nc_table, threshold)
+        backboning.write(nc_backbone, "retweet_network_backbone_" + str(threshold),
+                         "nc", self.output_path + r"\Graph_files\\")
+
+    def convert_backbone_format_to_gephi(self):
+        user_indexes = tools.load_pickle(self.output_path + r"Indexes\user_id_to_screen_name")
+        backbone_users = set()
+        with open(self.output_path + r"Graph_files\retweet_network_backbone_1000000_nc.csv") as bone_file:
+            # Creating the edge file
+            with open(self.output_path + r"Graph_files\Back_Bones\threshold_1m\1m_edges.csv", "w") as edge_file:
+                edge_file.write("Source,Target,Weight\n")
+                reader = csv.reader(bone_file, delimiter=",", quotechar='"')
+                # Skipping the header
+                next(reader, None)
+                for edge_info in reader:
+                    # we don't include the last field of the boack boning algorithm yet, it is a significance score.
+                    split_info = edge_info[0].split("\t")
+                    backbone_users.add(int(split_info[0]))
+                    backbone_users.add(int(split_info[1]))
+                    edge_file.write(split_info[0] + "," + split_info[1] + "," + split_info[2] + "\n")
+        # Creating the node file.
+        with open(self.output_path + r"Graph_files\Back_Bones\threshold_1m\1m_nodes.csv", "w") as node_file:
+            node_file.write("id,label\n")
+            for author_id in backbone_users:
+                if author_id in user_indexes:
+                    node_file.write(str(author_id) + "," + user_indexes[author_id] + "\n")
+                else:
+                    node_file.write(str(author_id) + "," + str(author_id) + "\n")
 
 
 if __name__ == "__main__":
@@ -165,9 +188,11 @@ if __name__ == "__main__":
     # climate_rt_graph.populate_network()
     # climate_rt_graph.connections_of_authorities()
 
-    climate_rt_graph.create_graph_files(percentage=100)
+    # climate_rt_graph.create_graph_files(percentage=100)
     # climate_rt_graph.creation_of_digraph()
 
     # climate_rt_graph.create_graph_file_for_backboning()
     # climate_rt_graph.backboning_graph()
+    climate_rt_graph.convert_backbone_format_to_gephi()
+    # tools.line_count(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\Graph_files\climate_retweet_network_backbone_nc.csv")
 
