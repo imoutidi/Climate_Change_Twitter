@@ -18,8 +18,8 @@ class CommunityPipeline:
         self.percent = percentage
         self.random_seed = random_seed
         self.path = r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\\"
-        self.input_path = self.path + r"I_O\Graph_files\\" + str(self.percent) + "_percent\\"
-        self.output_path = self.path + r"I_O\Communities\\" + str(self.percent) + "_percent\\"
+        self.input_path = self.path + r"I_O\Graph_files\Back_Bones\\" + "threshold_1k\\"
+        self.output_path = self.path + r"I_O\Communities\\" + "threshold_1k\\"
         self.author_ids_to_labels = dict()
         self.directed_graph = nx.DiGraph()
         # Tuple with author_usernames and their twitter ids that are part of a detected community in the graph.
@@ -34,13 +34,13 @@ class CommunityPipeline:
 
     def creation_of_digraph(self):
         # Creating author_id to author username/label in Twitter
-        with open(self.input_path + str(self.percent) + "p_nodes.csv") as node_file:
+        with open(self.input_path + "nodes_threshold_1k.csv") as node_file:
             node_reader = csv.reader(node_file, delimiter=",")
             # Skipping the headers
             next(node_reader)
             for node_info in node_reader:
                 self.author_ids_to_labels[int(node_info[0])] = node_info[1]
-        with open(self.input_path + str(self.percent) + "p_edges.csv") as edge_file:
+        with open(self.input_path + "edges_threshold_1k.csv") as edge_file:
             edge_reader = csv.reader(edge_file, delimiter=",")
             # Skipping the headers
             next(edge_reader)
