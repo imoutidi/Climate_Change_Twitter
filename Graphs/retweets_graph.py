@@ -54,9 +54,8 @@ class RTGraph:
         else:
             rt_authors_list.append(retweeted_author)
 
-        self.collection_superdocs.update_one({"author_id": author_id},
-                                      {"$set": {"rt_tweets_list": rt_tweets_list,
-                                                "rt_authors_list": rt_authors_list}})
+        self.collection_superdocs.update_one({"author_id": author_id}, {"$set": {"rt_tweets_list": rt_tweets_list,
+                                             "rt_authors_list": rt_authors_list}})
 
     def populate_network(self):
         all_users_that_retweeted = tools.load_pickle(self.output_path + r"bin\all_users_that_retweeted")
@@ -145,7 +144,7 @@ class RTGraph:
                 csv_file.write(str(pair[0]) + "\t" + str(pair[1]) + "\t" + str(weight) + "\n")
 
     def backboning_graph(self):
-        threshold = 1000
+        threshold = 13000
         table, nnodes, nnedges = backboning.read(self.output_path
                                                  + r"\Graph_files\\"
                                                    r"retweet_network_all_for_backboning_no_self_retweets.csv",
@@ -158,9 +157,10 @@ class RTGraph:
     def convert_backbone_format_to_gephi(self):
         user_indexes = tools.load_pickle(self.output_path + r"Indexes\user_id_to_screen_name")
         backbone_users = set()
-        with open(self.output_path + r"Graph_files\retweet_network_backbone_1000_nc.csv") as bone_file:
+        with open(self.output_path + r"Graph_files\retweet_network_backbone_13000_nc.csv") as bone_file:
             # Creating the edge file
-            with open(self.output_path + r"Graph_files\Back_Bones\threshold_1k\edges_threshold_1k.csv", "w") as edge_file:
+            with open(self.output_path + r"Graph_files\Back_Bones\threshold_13k\\"
+                                         r"edges_threshold_13k.csv", "w") as edge_file:
                 edge_file.write("Source,Target,Weight\n")
                 reader = csv.reader(bone_file, delimiter=",", quotechar='"')
                 # Skipping the header
@@ -172,7 +172,8 @@ class RTGraph:
                     backbone_users.add(int(split_info[1]))
                     edge_file.write(split_info[0] + "," + split_info[1] + "," + split_info[2] + "\n")
         # Creating the node file.
-        with open(self.output_path + r"Graph_files\Back_Bones\threshold_1k\nodes_threshold_1k.csv", "w") as node_file:
+        with open(self.output_path + r"Graph_files\Back_Bones\threshold_13k\\"
+                                     r"nodes_threshold_13k.csv", "w") as node_file:
             node_file.write("id,label\n")
             for author_id in backbone_users:
                 if author_id in user_indexes:

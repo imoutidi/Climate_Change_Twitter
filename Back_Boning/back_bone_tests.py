@@ -42,8 +42,50 @@ class BbTester:
         self.strong_ratios_list.append((len(strong_comps[0]) / self.directed_graph.size(), self.threshold))
         print()
 
+    @staticmethod
+    def merge_ratios():
+        merged_strong = list()
+        merged_weak = list()
+        for i in range(1, 5):
+            temp_strong = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
+                                            r"Backbone_Ratios\strong_ratios_list" + str(i))
+            temp_weak = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
+                                          r"Backbone_Ratios\weak_ratios_list" + str(i))
+            merged_strong += temp_strong
+            merged_weak += temp_weak
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\\"
+                          r"strong_ratios_list", merged_strong)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\\"
+                          r"weak_ratios_list", merged_weak)
 
-if __name__ == "__main__":
+    @staticmethod
+    def plot_ratios():
+        strong = tools.load_pickle(
+            r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\strong_ratios_list")
+        weak = tools.load_pickle(
+            r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\weak_ratios_list")
+        print()
+
+        # Extract x and y coordinates from the list of tuples
+
+        x_values = [point[1] for point in weak[:200]]
+        y_values = [point[0] for point in weak[:200]]
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+
+        # Plot the data as scatter plot
+        plt.scatter(x_values, y_values, color='b', marker='o')
+
+        # Set plot labels and title
+        ax.set_xlabel("Threshold")
+        ax.set_ylabel("Weak components nodes ratio to all \n network nodes")
+        ax.set_title("Ratio for thresholds from 0 to 200000")
+        ax.ticklabel_format(style='plain')
+        plt.savefig(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\Plots\\"
+                    r"weak_first_200.png")
+
+
+def run_backbone_fragments():
     for i in range(7501000, 10001000, 1000):
         print(i)
         start_time = time.perf_counter()
@@ -53,8 +95,22 @@ if __name__ == "__main__":
         backbone_tester.components_ratios()
         print("Backboning processing time: " + str(time.perf_counter() - start_time) + " seconds")
     backbone_tester = BbTester(1000)
-    tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\weak_ratios_list1"
-                      , backbone_tester.weak_ratios_list)
+    tools.save_pickle(
+        r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\weak_ratios_list4"
+        , backbone_tester.weak_ratios_list)
     tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\\"
-                      r"strong_ratios_list1", backbone_tester.strong_ratios_list)
+                      r"strong_ratios_list4", backbone_tester.strong_ratios_list)
+
+
+if __name__ == "__main__":
+    backbone_tester = BbTester(0)
+    # backbone_tester.merge_ratios()
+    backbone_tester.plot_ratios()
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
+    #                       r"Backbone_Ratios\strong_ratios_list")
+    # b = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
+    #                       r"Backbone_Ratios\weak_ratios_list")
+
+
+    print()
 

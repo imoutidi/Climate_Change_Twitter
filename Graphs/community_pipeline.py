@@ -1,3 +1,4 @@
+import os
 import time
 import csv
 # Package name is community but refer to python-louvain on pypi
@@ -14,12 +15,13 @@ from Tool_Pack import tools
 
 class CommunityPipeline:
 
-    def __init__(self, percentage, random_seed):
+    def __init__(self, percentage, random_seed, threshold):
         self.percent = percentage
         self.random_seed = random_seed
+        self.threshold = threshold
         self.path = r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\\"
-        self.input_path = self.path + r"I_O\Graph_files\Back_Bones\\" + "threshold_1k\\"
-        self.output_path = self.path + r"I_O\Communities\\" + "threshold_1k\\"
+        self.input_path = self.path + r"I_O\Graph_files\Back_Bones\\" + "threshold_" + self.threshold + "\\"
+        self.output_path = self.path + r"I_O\Communities\\" + "threshold_" + self.threshold + "\\"
         self.author_ids_to_labels = dict()
         self.directed_graph = nx.DiGraph()
         # Tuple with author_usernames and their twitter ids that are part of a detected community in the graph.
@@ -34,19 +36,21 @@ class CommunityPipeline:
 
     def creation_of_digraph(self):
         # Creating author_id to author username/label in Twitter
-        with open(self.input_path + "nodes_threshold_1k.csv") as node_file:
+        with open(self.input_path + "nodes_threshold_" + self.threshold + ".csv") as node_file:
             node_reader = csv.reader(node_file, delimiter=",")
             # Skipping the headers
             next(node_reader)
             for node_info in node_reader:
                 self.author_ids_to_labels[int(node_info[0])] = node_info[1]
-        with open(self.input_path + "edges_threshold_1k.csv") as edge_file:
+        with open(self.input_path + "edges_threshold_" + self.threshold + ".csv") as edge_file:
             edge_reader = csv.reader(edge_file, delimiter=",")
             # Skipping the headers
             next(edge_reader)
             for edge_info in edge_reader:
                 self.directed_graph.add_edge(int(edge_info[0]), int(edge_info[1]), weight=int(edge_info[2]))
 
+    # Detects communities on the graph using the Louvain community detection algorithm.
+    # The communities are saved only in the object.
     def community_detection(self, com_size_threshold=0.01):
         # communities = community.best_partition(self.directed_graph, weight="weight", resolution=1.)
         communities = nx.community.louvain_communities(self.directed_graph, weight="weight", resolution=1,
@@ -66,6 +70,9 @@ class CommunityPipeline:
         self.top_com_nodes = sorted(self.top_com_nodes, key=lambda x: len(x[1]), reverse=True)
 
     def create_worldclouds(self):
+        if not os.path.exists(self.output_path):
+            os.makedirs(self.output_path)
+
         mask = np.array(Image.open(self.path + r"Images\c1.png"))
         input_dict = [{"a": 20, "b": 30, "c": 15, "d": 20, "e": 50, "f": 15, "g": 30,
                        "h": 20, "i": 10, "j": 10, "k": 17, "l": 30, "m": 40, "n": 20,
@@ -92,12 +99,11 @@ class CommunityPipeline:
 
 
 if __name__ == "__main__":
-    rts_pipeline = CommunityPipeline(percentage=100, random_seed=123)
+    rts_pipeline = CommunityPipeline(percentage=100, random_seed=123, threshold="13k")
     rts_pipeline.creation_of_digraph()
     start_time = time.perf_counter()
     rts_pipeline.community_detection()
     print("Community detection processing time: " + str(time.perf_counter() - start_time) + " seconds")
-    # rts_pipeline.plot_graphs()
     start_time = time.perf_counter()
     rts_pipeline.create_worldclouds()
     print("Wordclouds creation processing time: " + str(time.perf_counter() - start_time) + " seconds")
