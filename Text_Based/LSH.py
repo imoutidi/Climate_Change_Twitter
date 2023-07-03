@@ -1,21 +1,28 @@
 from Tool_Pack import tools
+from LocalitySensitiveHashing import *
+from pymongo import MongoClient
+
+# TODO retrieve bert vectors from the mongo database
 
 
-a = "flying fish flew by the space station"
-b = "we will not allow you to bring your pet armadillo along"
-c = "he figured a few sticks of dynamite were easier than a fishing pole to catch fish"
-k = 2
+def get_bert_vectors():
+    client = MongoClient('localhost', 27017)
+    db = client.Climate_Change_Tweets
+    collection_tweets = db.tweet_documents
+    collection_superdocs = db.super_documents
+    # author_record = collection_superdocs.find_one({"author_id": author_id})
+    cursor = collection_superdocs.find({})
+    for document in cursor:
+        print(document["bert_vector"])
+        keep_printing = input("Keep printing")
+        if keep_printing != "Y":
+            break
 
 
-def shingle(text: str, k: int):
-    shingle_set = []
-    for i in range(len(text) - k+1):
-        shingle_set.append(text[i:i+k])
-    return set(shingle_set)
+#  LSH
 
 
 if __name__ == "__main__":
-    a = shingle(a, k)
-    b = shingle(b, k)
-    c = shingle(c, k)
-    print(a)
+    get_bert_vectors()
+
+
