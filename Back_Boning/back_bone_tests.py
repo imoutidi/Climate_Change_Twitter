@@ -34,13 +34,14 @@ class BbTester:
             next(edge_reader)
             for edge_info in edge_reader:
                 self.directed_graph.add_edge(int(edge_info[0]), int(edge_info[1]), weight=int(edge_info[2]))
+            print(len(self.directed_graph))
+            print(self.directed_graph.size())
 
     def components_ratios(self):
         weak_comps = sorted(nx.weakly_connected_components(self.directed_graph), key=len, reverse=True)
         strong_comps = sorted(nx.strongly_connected_components(self.directed_graph), key=len, reverse=True)
-        self.weak_ratios_list.append((len(weak_comps[0]) / self.directed_graph.size(), self.threshold))
-        self.strong_ratios_list.append((len(strong_comps[0]) / self.directed_graph.size(), self.threshold))
-        print()
+        self.weak_ratios_list.append((len(weak_comps[0]) / len(self.directed_graph), self.threshold))
+        self.strong_ratios_list.append((len(strong_comps[0]) / len(self.directed_graph), self.threshold))
 
     @staticmethod
     def merge_ratios():
@@ -86,26 +87,27 @@ class BbTester:
 
 
 def run_backbone_fragments():
-    for i in range(7501000, 10001000, 1000):
+    for i in range(0, 10001000, 1000):
         print(i)
         start_time = time.perf_counter()
         backbone_tester = BbTester(i)
-        backbone_tester.backboning()
+        # backbone_tester.backboning()
         backbone_tester.creation_of_digraph()
         backbone_tester.components_ratios()
         print("Backboning processing time: " + str(time.perf_counter() - start_time) + " seconds")
     backbone_tester = BbTester(1000)
     tools.save_pickle(
-        r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\weak_ratios_list4"
+        r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\new_weak_ratios_list"
         , backbone_tester.weak_ratios_list)
     tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\\"
-                      r"strong_ratios_list4", backbone_tester.strong_ratios_list)
+                      r"new_strong_ratios_list", backbone_tester.strong_ratios_list)
 
 
 if __name__ == "__main__":
-    backbone_tester = BbTester(0)
+    run_backbone_fragments()
+    # backbone_tester = BbTester(0)
     # backbone_tester.merge_ratios()
-    backbone_tester.plot_ratios()
+    # backbone_tester.plot_ratios()
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
     #                       r"Backbone_Ratios\strong_ratios_list")
     # b = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
