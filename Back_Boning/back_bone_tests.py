@@ -2,14 +2,18 @@ import csv
 import time
 import networkx as nx
 import matplotlib.pyplot as plt
+import multiprocessing
 import numpy as np
 from Tool_Pack import tools
 from Back_Boning import backboning
 
 
+
 class BbTester:
     weak_ratios_list = list()
     strong_ratios_list = list()
+    number_of_edges_list = list()
+    number_of_nodes_list = list()
 
     def __init__(self, threshold):
         self.threshold = threshold
@@ -34,14 +38,14 @@ class BbTester:
             next(edge_reader)
             for edge_info in edge_reader:
                 self.directed_graph.add_edge(int(edge_info[0]), int(edge_info[1]), weight=int(edge_info[2]))
-            print(len(self.directed_graph))
-            print(self.directed_graph.size())
 
     def components_ratios(self):
         weak_comps = sorted(nx.weakly_connected_components(self.directed_graph), key=len, reverse=True)
         strong_comps = sorted(nx.strongly_connected_components(self.directed_graph), key=len, reverse=True)
         self.weak_ratios_list.append((len(weak_comps[0]) / len(self.directed_graph), self.threshold))
         self.strong_ratios_list.append((len(strong_comps[0]) / len(self.directed_graph), self.threshold))
+        self.number_of_edges_list.append((len(self.directed_graph.edges), self.threshold))
+        self.number_of_nodes_list.append((len(self.directed_graph.nodes), self.threshold))
 
     @staticmethod
     def merge_ratios():
@@ -86,25 +90,48 @@ class BbTester:
                     r"weak_first_200.png")
 
 
-def run_backbone_fragments():
-    for i in range(0, 10001000, 1000):
-        print(i)
-        start_time = time.perf_counter()
+def run_bb_frag_in_parallel():
+    threshold_couples = list()
+    for idx, i in enumerate(range(0, 10001000, 1250000)):
+        threshold_couples.append((i, i+1250000, idx))
+    print()
+
+    # Create a multiprocessing pool with the desired number of processes
+    pool = multiprocessing.Pool(processes=8)
+
+    # Apply the function to each argument in parallel
+    pool.map(run_backbone_fragments, threshold_couples)
+
+    # Close the pool and wait for the work to finish
+    pool.close()
+    pool.join()
+
+
+def run_backbone_fragments(thresh_couple):
+    for i in range(thresh_couple[0], thresh_couple[1], 1000):
+        # print(i)
+        # start_time = time.perf_counter()
         backbone_tester = BbTester(i)
         # backbone_tester.backboning()
         backbone_tester.creation_of_digraph()
         backbone_tester.components_ratios()
-        print("Backboning processing time: " + str(time.perf_counter() - start_time) + " seconds")
+        # print("Backboning processing time: " + str(time.perf_counter() - start_time) + " seconds")
     backbone_tester = BbTester(1000)
     tools.save_pickle(
-        r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\new_weak_ratios_list"
+        r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\new_weak_ratios_list_" +
+        str(thresh_couple[2])
         , backbone_tester.weak_ratios_list)
     tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\\"
-                      r"new_strong_ratios_list", backbone_tester.strong_ratios_list)
+                      r"new_strong_ratios_list_" + str(thresh_couple[2]), backbone_tester.strong_ratios_list)
+    tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\\"
+                      r"new_num_of_edges_list_" + str(thresh_couple[2]), backbone_tester.number_of_edges_list)
+    tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\\"
+                      r"new_num_of_nodes_list_" + str(thresh_couple[2]), backbone_tester.number_of_nodes_list)
 
 
 if __name__ == "__main__":
-    run_backbone_fragments()
+    # run_backbone_fragments()
+    run_bb_frag_in_parallel()
     # backbone_tester = BbTester(0)
     # backbone_tester.merge_ratios()
     # backbone_tester.plot_ratios()
