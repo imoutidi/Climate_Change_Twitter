@@ -140,7 +140,7 @@ class TweetArchiver:
     def calculate_text_bert_vectors(self):
         # We need no_cursor_timeout=True because otherwise the cursor times out after ten minutes
         # Always remember to add also cursor.close() after the job is done.
-        # The cursor can stiil close after 30 minutes because FML and this:
+        # The cursor can still close after 30 minutes because FML and this:
         # https://www.mongodb.com/docs/v4.4/reference/method/cursor.noCursorTimeout/#session-idle-timeout-overrides-nocursortimeout
         cursor = self.superdocs.find({}, no_cursor_timeout=True)
         all_author_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Coordination\I_O\Datasets\Climate_Changed\\"
