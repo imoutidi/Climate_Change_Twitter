@@ -20,6 +20,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 import torch
 from transformers import BertTokenizer, BertModel
+from gensim.models import Word2Vec
+from gensim.utils import simple_preprocess
+import gensim.downloader as api
+from scipy import spatial
 
 
 class TweetArchiver:
@@ -35,6 +39,9 @@ class TweetArchiver:
         self.enrich_stopwords()
         self.model = BertModel.from_pretrained('bert-base-uncased')
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        self.sentence_vector = None
+        self.model_name = "word2vec-google-news-300"
+        self.word2vec_model = api.load(self.model_name)
 
     def enrich_stopwords(self):
         list_of_additional_words = ["it's", "we're", "...", "there's", "you're", "he's",
@@ -178,7 +185,7 @@ class TweetArchiver:
         np_vector = np.asarray(list_of_nums, dtype=np.float64)
         return np_vector
 
-    def doc_vectorizer(self, document):
+    def doc_vectorizer_bert(self, document):
         max_chunk_length = 512
         chunks = [document[i:i + max_chunk_length] for i in range(0, len(document), max_chunk_length)]
         embeddings = np.zeros((len(chunks), max_chunk_length, 768))
@@ -196,6 +203,16 @@ class TweetArchiver:
         # Average the embeddings across chunks to obtain a single vector representation for the entire document
         document_vector = np.mean(embeddings, axis=(0, 1))
         return document_vector
+
+    def doc_vectorizer_word2vec(self, sentence):
+        sentence_vector = None
+        tokens = [token for token in simple_preprocess(sentence)]
+        vector_sum = sum(self.word2vec_model[token] for token in tokens if token in self.word2vec_model)
+        if len(tokens) > 0:
+            sentence_vector = vector_sum / len(tokens)
+        return sentence_vector
+        # print(sentence_vector)
+
 
     def manual_adding_records(self):
         all_author_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\\"
@@ -224,14 +241,15 @@ class TweetArchiver:
 
 if __name__ == "__main__":
     climate_change_archiver = TweetArchiver()
+    # v1 = climate_change_archiver.doc_vectorizer_word2vec("Hallo how are you?")
     # climate_change_archiver.parse_tweets()
     # climate_change_archiver.working_on_users()
     # climate_change_archiver.create_super_documents()
-    # climate_change_archiver.doc_vectorizer("tt")
+    # climate_change_archiver.doc_vectorizer_bert("tt")
     # climate_change_archiver.calculate_text_bert_vectors()
     # climate_change_archiver.manual_adding_records()
     # climate_change_archiver.gather_user_ids_with_many_tweets(10)
-    climate_change_archiver.indexing_users()
+    # climate_change_archiver.indexing_users()
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\\"
     #                       r"Indexes\user_id_to_username")
     print()
