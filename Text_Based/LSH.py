@@ -1,6 +1,7 @@
 from Tool_Pack import tools
 from LocalitySensitiveHashing import *
 from pymongo import MongoClient
+import time
 # in case you need this: pip install BitVector
 
 
@@ -24,7 +25,9 @@ def get_bert_vectors():
 #  LSH
 def LSHing():
     lsh = LocalitySensitiveHashing(
-        datafile=r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\LSH_files\doc_vectors.csv",
+        # datafile=r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\LSH_files\doc_vectors.csv",
+        datafile=r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Near_Neighbors\I_O\Vectors\\"
+                 r"lsh_vectors_3480.csv",
         dim=768,  # bert vector dimension
         r=50,  # number of rows in each band for r-wise AND in each band
         b=100,  # number of bands for b-wise OR over all b bands
@@ -42,7 +45,7 @@ def LSHing():
 
     merged_similarity_groups = lsh.merge_similarity_groups_with_l2norm_set_based(coalesced_similarity_groups)
 
-    lsh.evaluate_quality_of_similarity_groups(merged_similarity_groups)
+    # lsh.evaluate_quality_of_similarity_groups(merged_similarity_groups)
 
     print("\n\nWriting the clusters to file 'clusters.txt'")
     lsh.write_clusters_to_file(merged_similarity_groups, "clusters.txt")
@@ -50,6 +53,8 @@ def LSHing():
 
 if __name__ == "__main__":
     # get_bert_vectors()
+    start_time = time.perf_counter()
     LSHing()
+    print("processing time: " + str(time.perf_counter() - start_time) + " seconds")
 
 

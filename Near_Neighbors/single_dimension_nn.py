@@ -3,7 +3,6 @@ import langdetect.lang_detect_exception
 from Tool_Pack import tools
 from Graphs import process_tweets
 from pymongo import MongoClient, ASCENDING, errors
-import tweepy
 # import editdistance
 # print(editdistance.eval('one banana', 'banana one'))
 import os
@@ -29,6 +28,8 @@ DetectorFactory.seed = 0
 from langdetect import detect
 
 from itertools import cycle
+from scipy import spatial
+import time
 
 
 
@@ -90,10 +91,57 @@ def calculate_vectors():
                       w2v_vectors)
 
 
+def create_file_for_LSH():
+    input_vectors = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Near_Neighbors\I_O\\"
+                                      r"Vectors\bert_3480")
+    with open(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Near_Neighbors\I_O\Vectors\\"
+              r"lsh_vectors_3480.csv", "w") as lsh_vectors:
+        doc_counter = 0
+        for doc_vec in input_vectors:
+            doc_vec = ', '.join(map(str, doc_vec))
+            lsh_vectors.write("sample_" + str(doc_counter) + "," + doc_vec + "\n")
+            print(doc_counter)
+            doc_counter += 1
+
+
+# Calculate the cosine similarity of every tweet. This will be
+# used for cluster creation.
+def cosine_all_to_all():
+    bert_vectors = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Near_Neighbors\I_O\\"
+                                      r"Vectors\bert_3480")
+    w2v_vectors = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Near_Neighbors\I_O\\"
+                                    r"Vectors\w2v_3480")
+    # Working with Bert vectors
+    bert_all_to_all_sims = list()
+    for outer_vctr in bert_vectors:
+        temp_vector_list = list()
+        for inner_vctr in bert_vectors:
+            vec_similarity = 1 - spatial.distance.cosine(inner_vctr, outer_vctr)
+            temp_vector_list.append(vec_similarity)
+        bert_all_to_all_sims.append(temp_vector_list)
+    tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Near_Neighbors\I_O\\"
+                      r"Similarities\bert_all_to_all", bert_all_to_all_sims)
+
+    # Working with word2vec vectors
+    w2v_all_to_all_sims = list()
+    for outer_vctr in w2v_vectors:
+        temp_sim_list = list()
+        for inner_vctr in w2v_vectors:
+            vec_similarity = 1 - spatial.distance.cosine(inner_vctr, outer_vctr)
+            temp_sim_list.append(vec_similarity)
+        w2v_all_to_all_sims.append(temp_sim_list)
+    tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Near_Neighbors\I_O\\"
+                      r"Similarities\w2v_all_to_all", w2v_all_to_all_sims)
+
+
 if __name__ == "__main__":
     # create_data_set()
     # combine_big_and_small_texts()
-    calculate_vectors()
+    # calculate_vectors()
+    # create_file_for_LSH()
+    start_time = time.perf_counter()
+    cosine_all_to_all()
+    print("processing time: " + str(time.perf_counter() - start_time) + " seconds")
 
     print()
 
