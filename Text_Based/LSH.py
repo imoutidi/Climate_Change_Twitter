@@ -9,6 +9,7 @@ import shutil
 import urllib.request as request
 from contextlib import closing
 import tarfile
+import faiss
 
 
 
@@ -59,15 +60,17 @@ def LSHing():
 
 
 def lsh_random_projection():
-    nbits = 4
+    nbits = 24
     dimensions = 2
-    plane_norms = np.random.rand(nbits, dimensions) - 0.5  # -0.5 is to center near the origin zero axis
-    # print(plane_norms)
-
     # Those are the hyper planes
+    plane_norms = np.random.rand(nbits, dimensions) - 0.5  # -0.5 is to center near the origin zero axis
+    print(plane_norms)
+
+    # Those are the vectors to hash.
     a = np.asarray([1, 2])
     b = np.asarray([2, 1])
     c = np.asarray([3, 1])
+    print(a)
 
     # Checking if the vector is on the right of left sie of the hyper plane
     a_dot = np.dot(a, plane_norms.T)
@@ -93,14 +96,8 @@ def lsh_random_projection():
     print(buckets)
 
 
-def get_sift_dataset():
-    # first we download the Sift1M dataset
-    with closing(request.urlopen('ftp://ftp.irisa.fr/local/texmex/corpus/sift.tar.gz')) as r:
-        with open('sift.tar.gz', 'wb') as f:
-            shutil.copyfileobj(r, f)
-    # the download leaves us with a tar.gz file, we unzip it
-    tar = tarfile.open('sift.tar.gz', "r:gz")
-    tar.extractall()
+
+
 
 
 if __name__ == "__main__":
@@ -108,7 +105,7 @@ if __name__ == "__main__":
     # start_time = time.perf_counter()
     # LSHing()
     # print("processing time: " + str(time.perf_counter() - start_time) + " seconds")
-    # lsh_random_projection()
-    get_sift_dataset()
+    lsh_random_projection()
+
 
 
