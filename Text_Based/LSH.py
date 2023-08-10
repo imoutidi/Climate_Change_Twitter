@@ -2,7 +2,14 @@ from Tool_Pack import tools
 from LocalitySensitiveHashing import *
 from pymongo import MongoClient
 import time
+import numpy as np
 # in case you need this: pip install BitVector
+
+import shutil
+import urllib.request as request
+from contextlib import closing
+import tarfile
+
 
 
 # TODO retrieve bert vectors from the mongo database
@@ -51,10 +58,57 @@ def LSHing():
     lsh.write_clusters_to_file(merged_similarity_groups, "clusters.txt")
 
 
+def lsh_random_projection():
+    nbits = 4
+    dimensions = 2
+    plane_norms = np.random.rand(nbits, dimensions) - 0.5  # -0.5 is to center near the origin zero axis
+    # print(plane_norms)
+
+    # Those are the hyper planes
+    a = np.asarray([1, 2])
+    b = np.asarray([2, 1])
+    c = np.asarray([3, 1])
+
+    # Checking if the vector is on the right of left sie of the hyper plane
+    a_dot = np.dot(a, plane_norms.T)
+    b_dot = np.dot(b, plane_norms.T)
+    c_dot = np.dot(c, plane_norms.T)
+    print(b_dot)
+
+    # converting into binary vectors
+    a_dot = (a_dot > 0).astype(int)
+    b_dot = (b_dot > 0).astype(int)
+    c_dot = (c_dot > 0).astype(int)
+    print(b_dot)
+
+    vectors = [a_dot, b_dot, c_dot]
+    buckets = {}
+
+    for i in range(len(vectors)):
+        hash_str = "".join(vectors[i].astype(str))
+        if hash_str not in buckets:
+            buckets[hash_str] = []
+        buckets[hash_str].append(i)
+
+    print(buckets)
+
+
+def get_sift_dataset():
+    # first we download the Sift1M dataset
+    with closing(request.urlopen('ftp://ftp.irisa.fr/local/texmex/corpus/sift.tar.gz')) as r:
+        with open('sift.tar.gz', 'wb') as f:
+            shutil.copyfileobj(r, f)
+    # the download leaves us with a tar.gz file, we unzip it
+    tar = tarfile.open('sift.tar.gz', "r:gz")
+    tar.extractall()
+
+
 if __name__ == "__main__":
     # get_bert_vectors()
-    start_time = time.perf_counter()
-    LSHing()
-    print("processing time: " + str(time.perf_counter() - start_time) + " seconds")
+    # start_time = time.perf_counter()
+    # LSHing()
+    # print("processing time: " + str(time.perf_counter() - start_time) + " seconds")
+    # lsh_random_projection()
+    get_sift_dataset()
 
 

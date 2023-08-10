@@ -15,12 +15,14 @@ def create_vectors_graph():
             bert_graph.add_edge(idx, index+idx+1, weight=inner_sim)
     communities = nx.community.louvain_communities(bert_graph, weight="weight", resolution=1.1,
                                                    seed=100)
+    tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Near_Neighbors\\"
+                      r"I_O\Communities\bert_idx_coms", communities)
     ids_to_tweet = list()
     for com in communities:
         temp_com = list()
         for idx in com:
             temp_com.append(tweet_dataset[idx])
-        ids_to_tweet.append(temp_com.sort())
+        ids_to_tweet.append(sorted(temp_com))
     print()
 
 

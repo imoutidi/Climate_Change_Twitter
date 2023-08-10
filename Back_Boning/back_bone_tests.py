@@ -8,7 +8,6 @@ from Tool_Pack import tools
 from Back_Boning import backboning
 
 
-
 class BbTester:
     weak_ratios_list = list()
     weak_ratios_2 = list()
