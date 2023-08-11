@@ -12,7 +12,6 @@ import tarfile
 import faiss
 
 
-
 # TODO retrieve bert vectors from the mongo database
 def get_bert_vectors():
     client = MongoClient('localhost', 27017)
@@ -60,44 +59,47 @@ def LSHing():
 
 
 def lsh_random_projection():
-    nbits = 24
-    dimensions = 2
+    nbits = 4
+    dimensions = 768
     # Those are the hyper planes
     plane_norms = np.random.rand(nbits, dimensions) - 0.5  # -0.5 is to center near the origin zero axis
-    print(plane_norms)
+    print()
 
     # Those are the vectors to hash.
-    a = np.asarray([1, 2])
-    b = np.asarray([2, 1])
-    c = np.asarray([3, 1])
-    print(a)
+    bert_3480 = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
+                                  r"Near_Neighbors\I_O\Vectors\bert_3480")
+    # a = np.asarray([1, 2])
+    # b = np.asarray([2, 1])
+    # c = np.asarray([3, 1])
 
     # Checking if the vector is on the right of left sie of the hyper plane
-    a_dot = np.dot(a, plane_norms.T)
-    b_dot = np.dot(b, plane_norms.T)
-    c_dot = np.dot(c, plane_norms.T)
-    print(b_dot)
+    # and creating binary vectors for the hash table.
+    binary_vectors = list()
+    for b_vector in bert_3480:
+        binary_vectors.append((np.dot(b_vector, plane_norms.T) > 0).astype(int))
+    # a_dot = np.dot(a, plane_norms.T)
+    # b_dot = np.dot(b, plane_norms.T)
+    # c_dot = np.dot(c, plane_norms.T)
+
 
     # converting into binary vectors
-    a_dot = (a_dot > 0).astype(int)
-    b_dot = (b_dot > 0).astype(int)
-    c_dot = (c_dot > 0).astype(int)
-    print(b_dot)
 
-    vectors = [a_dot, b_dot, c_dot]
+    # a_dot = (a_dot > 0).astype(int)
+    # b_dot = (b_dot > 0).astype(int)
+    # c_dot = (c_dot > 0).astype(int)
+    # print(b_dot)
+
+    # vectors = [a_dot, b_dot, c_dot]
     buckets = {}
 
-    for i in range(len(vectors)):
-        hash_str = "".join(vectors[i].astype(str))
+    for i in range(len(binary_vectors)):
+        hash_str = "".join(binary_vectors[i].astype(str))
         if hash_str not in buckets:
             buckets[hash_str] = []
         buckets[hash_str].append(i)
 
+    # for doc_list
     print(buckets)
-
-
-
-
 
 
 if __name__ == "__main__":

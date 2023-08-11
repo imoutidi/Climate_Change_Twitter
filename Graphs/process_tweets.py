@@ -163,7 +163,7 @@ class TweetArchiver:
             print(counter)
             counter += 1
             super_doc_record = self.superdocs.find_one({"author_id": author_id})
-            vector = self.doc_vectorizer(super_doc_record["super_document"])
+            vector = self.doc_vectorizer_bert(super_doc_record["super_document"])
             string_vector = self.vector_to_string(vector)
             self.superdocs.update_one({"author_id": author_id}, {"$set": {"bert_vector": string_vector}})
 
