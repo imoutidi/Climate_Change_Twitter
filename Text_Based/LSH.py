@@ -3,6 +3,7 @@ from LocalitySensitiveHashing import *
 from pymongo import MongoClient
 import time
 import numpy as np
+import hnswlib
 # in case you need this: pip install BitVector
 
 import shutil
@@ -102,12 +103,17 @@ def lsh_random_projection():
     print(buckets)
 
 
+def hnswlib_test():
+    p = hnswlib.Index(space='l2', dim=100)
+    print(p)
+
+
 if __name__ == "__main__":
     # get_bert_vectors()
     # start_time = time.perf_counter()
     # LSHing()
     # print("processing time: " + str(time.perf_counter() - start_time) + " seconds")
-    lsh_random_projection()
-
+    # lsh_random_projection()
+    hnswlib_test()
 
 

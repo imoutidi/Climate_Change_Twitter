@@ -149,23 +149,29 @@ class TweetArchiver:
         # Always remember to add also cursor.close() after the job is done.
         # The cursor can still close after 30 minutes because FML and this:
         # https://www.mongodb.com/docs/v4.4/reference/method/cursor.noCursorTimeout/#session-idle-timeout-overrides-nocursortimeout
-        cursor = self.superdocs.find({}, no_cursor_timeout=True)
-        all_author_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Coordination\I_O\Datasets\Climate_Changed\\"
-                                           r"I_O\bin\all_authors_ids")
+
+        # cursor = self.collection.find({}, no_cursor_timeout=True)
+        # all_author_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Coordination\I_O\Datasets\Climate_Changed\\"
+        #                                    r"I_O\bin\all_authors_ids")
         # all_author_ids = list()
+        # all_tweets_ids = list()
         # for count, document in enumerate(cursor):
-        #     all_author_ids.append(document["author_id"])
-        # tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Coordination\I_O\Datasets\Climate_Changed\\"
-        #                   r"I_O\bin\all_authors_ids", all_author_ids)
-        cursor.close()
+        #     all_tweets_ids.append(document["tweet_id"])
+        # tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\\"
+        #                   r"bin\all_tweets_ids", all_tweets_ids)
+        # cursor.close()
+
+        all_tweets_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\\"
+                                           r"Climate_Changed\I_O\bin\all_tweets_ids")
+
         counter = 0
-        for author_id in all_author_ids:
+        for tweet_id in all_tweets_ids:
             print(counter)
             counter += 1
-            super_doc_record = self.superdocs.find_one({"author_id": author_id})
-            vector = self.doc_vectorizer_bert(super_doc_record["super_document"])
-            string_vector = self.vector_to_string(vector)
-            self.superdocs.update_one({"author_id": author_id}, {"$set": {"bert_vector": string_vector}})
+            doc_record = self.collection.find_one({"tweet_id": tweet_id})
+            vector = self.doc_vectorizer_bert(doc_record["preprocessed_text"])
+            # string_vector = self.vector_to_string(vector)
+            self.collection.update_one({"tweet_id": tweet_id}, {"$set": {"bert_vector": vector.tolist()}})
 
         # similarity = cosine_similarity(vector1, vector2)
         # print(similarity[0][0])
@@ -246,7 +252,7 @@ if __name__ == "__main__":
     # climate_change_archiver.working_on_users()
     # climate_change_archiver.create_super_documents()
     # climate_change_archiver.doc_vectorizer_bert("tt")
-    # climate_change_archiver.calculate_text_bert_vectors()
+    climate_change_archiver.calculate_text_bert_vectors()
     # climate_change_archiver.manual_adding_records()
     # climate_change_archiver.gather_user_ids_with_many_tweets(10)
     # climate_change_archiver.indexing_users()
