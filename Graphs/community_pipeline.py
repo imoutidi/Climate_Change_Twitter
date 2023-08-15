@@ -99,7 +99,7 @@ class CommunityPipeline:
 
 
 if __name__ == "__main__":
-    rts_pipeline = CommunityPipeline(percentage=100, random_seed=123, threshold="13k")
+    rts_pipeline = CommunityPipeline(percentage=100, random_seed=123, threshold="3k")
     rts_pipeline.creation_of_digraph()
     start_time = time.perf_counter()
     rts_pipeline.community_detection()

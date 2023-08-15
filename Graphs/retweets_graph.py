@@ -157,10 +157,11 @@ class RTGraph:
     def convert_backbone_format_to_gephi(self):
         user_indexes = tools.load_pickle(self.output_path + r"Indexes\user_id_to_screen_name")
         backbone_users = set()
-        with open(self.output_path + r"Graph_files\retweet_network_backbone_13000_nc.csv") as bone_file:
+        with open(self.output_path + r"Graph_files\BB_files_from_nc_method\retweet_network_backbone_3000_nc.csv") \
+                as bone_file:
             # Creating the edge file
-            with open(self.output_path + r"Graph_files\Back_Bones\threshold_13k\\"
-                                         r"edges_threshold_13k.csv", "w") as edge_file:
+            with open(self.output_path + r"Graph_files\Back_Bones\threshold_3k\\"
+                                         r"edges_threshold_3k.csv", "w") as edge_file:
                 edge_file.write("Source,Target,Weight\n")
                 reader = csv.reader(bone_file, delimiter=",", quotechar='"')
                 # Skipping the header
@@ -172,8 +173,8 @@ class RTGraph:
                     backbone_users.add(int(split_info[1]))
                     edge_file.write(split_info[0] + "," + split_info[1] + "," + split_info[2] + "\n")
         # Creating the node file.
-        with open(self.output_path + r"Graph_files\Back_Bones\threshold_13k\\"
-                                     r"nodes_threshold_13k.csv", "w") as node_file:
+        with open(self.output_path + r"Graph_files\Back_Bones\threshold_3k\\"
+                                     r"nodes_threshold_3k.csv", "w") as node_file:
             node_file.write("id,label\n")
             for author_id in backbone_users:
                 if author_id in user_indexes:
