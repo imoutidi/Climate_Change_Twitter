@@ -4,6 +4,7 @@ from pymongo import MongoClient
 import time
 import numpy as np
 import hnswlib
+import pickle
 # in case you need this: pip install BitVector
 
 import shutil
@@ -104,8 +105,77 @@ def lsh_random_projection():
 
 
 def hnswlib_test():
-    p = hnswlib.Index(space='l2', dim=100)
-    print(p)
+    # Those are the vectors to hash.
+    bert_3480 = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
+                                  r"Near_Neighbors\I_O\Vectors\bert_3480")
+    bert1 = bert_3480[:1700]
+    bert2 = bert_3480[1700:]
+    b_d1 = np.vstack(bert1)
+    b_d2 = np.vstack(bert2)
+    bert_data = np.vstack(bert_3480)
+    print()
+
+    dim = 768
+    num_elements = 3480
+
+    # Generating sample data
+    # data = np.float32(np.random.random((num_elements, dim)))
+    ids1 = np.arange(1700)
+    ids2 = np.arange(1700, 3480)
+
+    print()
+
+    # Declaring index
+    nn_index = hnswlib.Index(space='l2', dim=dim)  # possible options are l2, cosine or ip
+
+    # Initializing index - the maximum number of elements should be known beforehand
+    nn_index.init_index(max_elements=num_elements, ef_construction=200, M=16)
+
+    # Element insertion (can be called several times):
+    nn_index.add_items(b_d1, ids1)
+    print()
+    # nn_index.add_items(b_d2, ids2)
+    print()
+
+    # Controlling the recall by setting ef:
+    nn_index.set_ef(50)  # ef should always be > k
+
+    # Query dataset, k - number of the closest elements (returns 2 numpy arrays)
+    labels, distances = nn_index.knn_query(bert_data, k=10)
+
+    print(labels)
+    print(distances)
+
+    tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\LSH_files\\"
+                      r"indexes\test_index", nn_index)
+
+    # Index objects support pickling
+    # WARNING: serialization via pickle.dumps(p) or p.__getstate__() is NOT thread-safe with p.add_items method!
+    # Note: ef parameter is included in serialization; random number generator is initialized with random_seed on Index load
+    # p_copy = pickle.loads(pickle.dumps(p))  # creates a copy of index p using pickle round-trip
+
+    ### Index parameters are exposed as class properties:
+    # print(f"Parameters passed to constructor:  space={p_copy.space}, dim={p_copy.dim}")
+    # print(f"Index construction: M={p_copy.M}, ef_construction={p_copy.ef_construction}")
+    # print(f"Index size is {p_copy.element_count} and index capacity is {p_copy.max_elements}")
+    # print(f"Search speed/quality trade-off parameter: ef={p_copy.ef}")
+
+
+def increment_the_index():
+    client = MongoClient('localhost', 27017)
+    db = client.Climate_Change_Tweets
+    collection_tweets = db.tweet_documents
+    cursor = collection_tweets.find({})
+    with open(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\LSH_files\\"
+              r"doc_vectors.csv", "w") as lsh_vectors:
+        doc_counter = 0
+        for document in cursor:
+            lsh_vectors.write("sample_" + str(doc_counter) + "," + document["bert_vector"] + "\n")
+            print(doc_counter)
+            doc_counter += 1
+
+    print()
+
 
 
 if __name__ == "__main__":
