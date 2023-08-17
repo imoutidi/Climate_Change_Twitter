@@ -5,6 +5,7 @@ import time
 import numpy as np
 import hnswlib
 import pickle
+from pympler import asizeof
 # in case you need this: pip install BitVector
 
 import shutil
@@ -161,21 +162,25 @@ def hnswlib_test():
     # print(f"Search speed/quality trade-off parameter: ef={p_copy.ef}")
 
 
-def increment_the_index():
+def increment_the_index(start_idx, stop_idx):
     client = MongoClient('localhost', 27017)
     db = client.Climate_Change_Tweets
     collection_tweets = db.tweet_documents
-    cursor = collection_tweets.find({})
-    with open(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\LSH_files\\"
-              r"doc_vectors.csv", "w") as lsh_vectors:
-        doc_counter = 0
-        for document in cursor:
-            lsh_vectors.write("sample_" + str(doc_counter) + "," + document["bert_vector"] + "\n")
-            print(doc_counter)
-            doc_counter += 1
+    # cursor = collection_tweets.find({})
+    bert_vector_list = list()
+    all_tweets_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\\"
+                                       r"Climate_Changed\I_O\bin\all_tweets_ids")
 
-    print()
-
+    for t_id in all_tweets_ids[:4000000]:
+        doc_record = collection_tweets.find_one({"tweet_id": t_id})
+        bert_vector_list.append(np.array(doc_record["bert_vector"]))
+    bert_array = np.vstack(bert_vector_list)
+    # print("Raw size")
+    # print(asizeof.asizeof(bert_vector_list))
+    # print("Np size")
+    # print(asizeof.asizeof(bert_array))
+    # print(bert_array.shape)
+    return bert_array
 
 
 if __name__ == "__main__":
@@ -184,6 +189,7 @@ if __name__ == "__main__":
     # LSHing()
     # print("processing time: " + str(time.perf_counter() - start_time) + " seconds")
     # lsh_random_projection()
-    hnswlib_test()
+    # hnswlib_test()
+    increment_the_index()
 
 
