@@ -107,22 +107,19 @@ def lsh_random_projection():
 
 def hnswlib_test():
     # Those are the vectors to hash.
-    bert_3480 = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
-                                  r"Near_Neighbors\I_O\Vectors\bert_3480")
-    bert1 = bert_3480[:1700]
-    bert2 = bert_3480[1700:]
-    b_d1 = np.vstack(bert1)
-    b_d2 = np.vstack(bert2)
-    bert_data = np.vstack(bert_3480)
+    # bert_3480 = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
+    #                               r"Near_Neighbors\I_O\Vectors\bert_3480")
+    all_tweets_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\\"
+                                       r"Climate_Changed\I_O\bin\all_tweets_ids")
+
+    chunked_tweets = divide_list_into_chunks(all_tweets_ids, 4)
     print()
 
     dim = 768
-    num_elements = 3480
+    num_elements = len(all_tweets_ids)
 
-    # Generating sample data
-    # data = np.float32(np.random.random((num_elements, dim)))
-    ids1 = np.arange(1700)
-    ids2 = np.arange(1700, 3480)
+    # Generating data
+    vectors, element_ids = format_data_for_indexing()
 
     print()
 
@@ -133,10 +130,7 @@ def hnswlib_test():
     nn_index.init_index(max_elements=num_elements, ef_construction=200, M=16)
 
     # Element insertion (can be called several times):
-    nn_index.add_items(b_d1, ids1)
-    print()
-    # nn_index.add_items(b_d2, ids2)
-    print()
+    nn_index.add_items(vectors, element_ids)
 
     # Controlling the recall by setting ef:
     nn_index.set_ef(50)  # ef should always be > k
@@ -162,16 +156,15 @@ def hnswlib_test():
     # print(f"Search speed/quality trade-off parameter: ef={p_copy.ef}")
 
 
-def increment_the_index(start_idx, stop_idx):
+def format_data_for_indexing(start_idx, stop_idx, tweets_ids):
+    ids = np.arange(start_idx, stop_idx)
     client = MongoClient('localhost', 27017)
     db = client.Climate_Change_Tweets
     collection_tweets = db.tweet_documents
     # cursor = collection_tweets.find({})
     bert_vector_list = list()
-    all_tweets_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\\"
-                                       r"Climate_Changed\I_O\bin\all_tweets_ids")
 
-    for t_id in all_tweets_ids[:4000000]:
+    for t_id in tweets_ids[start_idx:stop_idx]:
         doc_record = collection_tweets.find_one({"tweet_id": t_id})
         bert_vector_list.append(np.array(doc_record["bert_vector"]))
     bert_array = np.vstack(bert_vector_list)
@@ -180,7 +173,26 @@ def increment_the_index(start_idx, stop_idx):
     # print("Np size")
     # print(asizeof.asizeof(bert_array))
     # print(bert_array.shape)
-    return bert_array
+    return bert_array, ids
+
+
+def divide_list_into_chunks(lst, num_chunks):
+    chunk_size = len(lst) // num_chunks
+    remainder = len(lst) % num_chunks
+
+    chunks = []
+    start = 0
+    for _ in range(num_chunks):
+        if remainder > 0:
+            end = start + chunk_size + 1
+            remainder -= 1
+        else:
+            end = start + chunk_size
+
+        chunks.append(lst[start:end])
+        start = end
+
+    return chunks
 
 
 if __name__ == "__main__":
@@ -189,7 +201,6 @@ if __name__ == "__main__":
     # LSHing()
     # print("processing time: " + str(time.perf_counter() - start_time) + " seconds")
     # lsh_random_projection()
-    # hnswlib_test()
-    increment_the_index()
+    hnswlib_test()
 
 
