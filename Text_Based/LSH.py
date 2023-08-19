@@ -112,48 +112,55 @@ def hnswlib_test():
     all_tweets_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\\"
                                        r"Climate_Changed\I_O\bin\all_tweets_ids")
 
-    chunked_tweets = divide_list_into_chunks(all_tweets_ids, 4)
+    chunk_indexes = divide_list_into_chunks(all_tweets_ids, 20)
     print()
 
     dim = 768
-    num_elements = len(all_tweets_ids)
 
     # Generating data
-    vectors, element_ids = format_data_for_indexing()
+    for idx, index_tuple in enumerate(chunk_indexes):
+        vectors, element_ids = format_data_for_indexing(index_tuple[0], index_tuple[1] + 1, all_tweets_ids)
+        num_elements = len(vectors)
 
-    print()
+        # Declaring index
+        nn_index = hnswlib.Index(space='l2', dim=dim)  # possible options are l2, cosine or ip
 
-    # Declaring index
-    nn_index = hnswlib.Index(space='l2', dim=dim)  # possible options are l2, cosine or ip
+        # Initializing index - the maximum number of elements should be known beforehand
+        nn_index.init_index(max_elements=num_elements, ef_construction=200, M=16)
 
-    # Initializing index - the maximum number of elements should be known beforehand
-    nn_index.init_index(max_elements=num_elements, ef_construction=200, M=16)
+        # Element insertion (can be called several times):
+        nn_index.add_items(vectors, element_ids)
 
-    # Element insertion (can be called several times):
-    nn_index.add_items(vectors, element_ids)
+        # Controlling the recall by setting ef:
+        nn_index.set_ef(num_elements)  # ef should always be > k
 
-    # Controlling the recall by setting ef:
-    nn_index.set_ef(50)  # ef should always be > k
+        # Query dataset, k - number of the closest elements (returns 2 numpy arrays)
+        # labels, distances = nn_index.knn_query(bert_data, k=10)
 
-    # Query dataset, k - number of the closest elements (returns 2 numpy arrays)
-    labels, distances = nn_index.knn_query(bert_data, k=10)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\LSH_files\\"
+                          r"indexes\test_index_" + str(idx), nn_index)
 
-    print(labels)
-    print(distances)
 
-    tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\LSH_files\\"
-                      r"indexes\test_index", nn_index)
-
-    # Index objects support pickling
-    # WARNING: serialization via pickle.dumps(p) or p.__getstate__() is NOT thread-safe with p.add_items method!
-    # Note: ef parameter is included in serialization; random number generator is initialized with random_seed on Index load
-    # p_copy = pickle.loads(pickle.dumps(p))  # creates a copy of index p using pickle round-trip
-
-    ### Index parameters are exposed as class properties:
-    # print(f"Parameters passed to constructor:  space={p_copy.space}, dim={p_copy.dim}")
-    # print(f"Index construction: M={p_copy.M}, ef_construction={p_copy.ef_construction}")
-    # print(f"Index size is {p_copy.element_count} and index capacity is {p_copy.max_elements}")
-    # print(f"Search speed/quality trade-off parameter: ef={p_copy.ef}")
+def index_query():
+    nn_index = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
+                                 r"I_O\Datasets\LSH_files\indexes\test_index_4")
+    all_tweets_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\\"
+                                       r"Climate_Changed\I_O\bin\all_tweets_ids")
+    client = MongoClient('localhost', 27017)
+    db = client.Climate_Change_Tweets
+    collection_tweets = db.tweet_documents
+    bert_vector_list = list()
+    doc_record = collection_tweets.find_one({"tweet_id": all_tweets_ids[100]})
+    print("Query full text:")
+    print(doc_record["full_text"])
+    bert_vector_list.append(np.array(doc_record["bert_vector"]))
+    bert_array = np.vstack(bert_vector_list)
+    labels, distances = nn_index.knn_query(bert_array, k=20)
+    print("Top closests matches:")
+    for vector_index in labels[0]:
+        tweet_id = all_tweets_ids[vector_index]
+        doc_record = collection_tweets.find_one({"tweet_id": tweet_id})
+        print(doc_record["full_text"])
 
 
 def format_data_for_indexing(start_idx, stop_idx, tweets_ids):
@@ -177,11 +184,15 @@ def format_data_for_indexing(start_idx, stop_idx, tweets_ids):
 
 
 def divide_list_into_chunks(lst, num_chunks):
+    if num_chunks <= 0:
+        raise ValueError("Number of chunks must be greater than 0")
+
     chunk_size = len(lst) // num_chunks
     remainder = len(lst) % num_chunks
 
-    chunks = []
+    indexes = []
     start = 0
+
     for _ in range(num_chunks):
         if remainder > 0:
             end = start + chunk_size + 1
@@ -189,18 +200,20 @@ def divide_list_into_chunks(lst, num_chunks):
         else:
             end = start + chunk_size
 
-        chunks.append(lst[start:end])
+        indexes.append((start, end - 1))
         start = end
 
-    return chunks
+    return indexes
 
 
 if __name__ == "__main__":
     # get_bert_vectors()
-    # start_time = time.perf_counter()
     # LSHing()
-    # print("processing time: " + str(time.perf_counter() - start_time) + " seconds")
     # lsh_random_projection()
-    hnswlib_test()
+    # start_time = time.perf_counter()
+    # hnswlib_test()
+    # print("processing time: " + str(time.perf_counter() - start_time) + " seconds")
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\LSH_files\indexes\test_index")
+    index_query()
 
 
