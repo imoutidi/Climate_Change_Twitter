@@ -6,7 +6,9 @@ import hnswlib
 import pickle
 
 
-# START HERE
+# I am querying all the tweets of the database using batches of 10000
+# for each tweet i am querying all 20 indexes that have been created.
+# from each index I keep the top 500 closest neighbors with the query
 def index_query():
     nn_index = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
                                  r"I_O\Datasets\LSH_files\indexes\test_index_4")
@@ -16,12 +18,11 @@ def index_query():
     db = client.Climate_Change_Tweets
     collection_tweets = db.tweet_documents
     bert_vector_list = list()
-    doc_record = collection_tweets.find_one({"tweet_id": all_tweets_ids[100]})
-    print("Query full text:")
-    print(doc_record["full_text"])
-    bert_vector_list.append(np.array(doc_record["bert_vector"]))
+    for tweet_id in all_tweets_ids:
+        doc_record = collection_tweets.find_one({"tweet_id": tweet_id})
+        bert_vector_list.append(np.array(doc_record["bert_vector"]))
     bert_array = np.vstack(bert_vector_list)
-    labels, distances = nn_index.knn_query(bert_array, k=20)
+    labels, distances = nn_index.knn_query(bert_array, k=2000)
     print("Top closests matches:")
     for vector_index in labels[0]:
         tweet_id = all_tweets_ids[vector_index]
