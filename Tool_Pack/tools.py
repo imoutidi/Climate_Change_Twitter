@@ -51,6 +51,7 @@ def timestamp_to_datetime_obj(timestamp):
     datetime_obj = datetime.datetime.fromtimestamp(timestamp)
     return datetime_obj
 
+
 def line_count(file_path):
     counter = 1
     with open(file_path) as node_file:
@@ -74,6 +75,24 @@ def load_pickle(path):
     data_structure = pickle.load(load_ds)
     load_ds.close()
     return data_structure
+
+
+def divide_list_into_chunks(lst, num_chunks):
+    if num_chunks <= 0:
+        raise ValueError("Number of chunks must be greater than 0")
+    chunk_size = len(lst) // num_chunks
+    remainder = len(lst) % num_chunks
+    chunks = []
+    start = 0
+    for _ in range(num_chunks):
+        if remainder > 0:
+            end = start + chunk_size + 1
+            remainder -= 1
+        else:
+            end = start + chunk_size
+        chunks.append(lst[start:end])
+        start = end
+    return chunks
 
 
 if __name__ == "__main__":
