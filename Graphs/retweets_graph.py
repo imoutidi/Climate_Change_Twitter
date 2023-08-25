@@ -131,9 +131,28 @@ class RTGraph:
         # tools.save_pickle(self.output_path + r"bin\list_of_all_pairs_no_self_rt", list_of_top_pairs)
 
     def creation_of_digraph(self):
-        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_top_pairs_1_percent_no_self_rt")
+        list_of_top_pairs = tools.load_pickle(self.output_path + r"bin\list_of_all_pairs_no_self_rt")
         for rt_pair, num_of_rts in list_of_top_pairs.items():
             self.directed_graph.add_edge(rt_pair[0], rt_pair[1], weight=num_of_rts)
+
+        # Extract degree lists
+        in_degree_list = list()
+        out_degree_list = list()
+        degree_list = list()
+        for degree_tuple in self.directed_graph.in_degree:
+            in_degree_list.append(degree_tuple)
+        print()
+        for degree_tuple in self.directed_graph.out_degree:
+            out_degree_list.append(degree_tuple)
+        for degree_tuple in self.directed_graph.degree:
+            degree_list.append(degree_tuple)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
+                          r"Backbone_Degrees\Raw\in_degrees", in_degree_list)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
+                          r"Backbone_Degrees\Raw\out_degrees", out_degree_list)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
+                          r"Backbone_Degrees\Raw\degrees", degree_list)
+        print()
 
     def create_graph_file_for_backboning(self):
         list_of_pairs = tools.load_pickle(self.output_path + r"bin\list_of_all_pairs_no_self_rt")
@@ -191,10 +210,10 @@ if __name__ == "__main__":
     # climate_rt_graph.connections_of_authorities()
 
     # climate_rt_graph.create_graph_files(percentage=100)
-    # climate_rt_graph.creation_of_digraph()
+    climate_rt_graph.creation_of_digraph()
 
     # climate_rt_graph.create_graph_file_for_backboning()
     # climate_rt_graph.backboning_graph()
-    climate_rt_graph.convert_backbone_format_to_gephi()
+    # climate_rt_graph.convert_backbone_format_to_gephi()
     # tools.line_count(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\Graph_files\climate_retweet_network_backbone_nc.csv")
 
