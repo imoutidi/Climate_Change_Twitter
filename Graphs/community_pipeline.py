@@ -49,6 +49,24 @@ class CommunityPipeline:
             for edge_info in edge_reader:
                 self.directed_graph.add_edge(int(edge_info[0]), int(edge_info[1]), weight=int(edge_info[2]))
 
+        # Extract degree lists
+        in_degree_list = list()
+        out_degree_list = list()
+        degree_list = list()
+        for degree_tuple in self.directed_graph.in_degree:
+            in_degree_list.append(degree_tuple)
+        for degree_tuple in self.directed_graph.out_degree:
+            out_degree_list.append(degree_tuple)
+        for degree_tuple in self.directed_graph.degree:
+            degree_list.append(degree_tuple)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
+                          r"Backbone_Degrees\151K\in_degrees", in_degree_list)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
+                          r"Backbone_Degrees\151K\out_degrees", out_degree_list)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
+                          r"Backbone_Degrees\151K\degrees", degree_list)
+        print()
+
     # Detects communities on the graph using the Louvain community detection algorithm.
     # The communities are saved only in the object.
     def community_detection(self, com_size_threshold=0.01):
@@ -99,11 +117,13 @@ class CommunityPipeline:
 
 
 if __name__ == "__main__":
-    rts_pipeline = CommunityPipeline(percentage=100, random_seed=123, threshold="3k")
+    rts_pipeline = CommunityPipeline(percentage=100, random_seed=123, threshold="151k")
     rts_pipeline.creation_of_digraph()
-    start_time = time.perf_counter()
+
+    print()
+    # start_time = time.perf_counter()
     rts_pipeline.community_detection()
-    print("Community detection processing time: " + str(time.perf_counter() - start_time) + " seconds")
-    start_time = time.perf_counter()
+    # print("Community detection processing time: " + str(time.perf_counter() - start_time) + " seconds")
+    # start_time = time.perf_counter()
     rts_pipeline.create_worldclouds()
-    print("Wordclouds creation processing time: " + str(time.perf_counter() - start_time) + " seconds")
+    # print("Wordclouds creation processing time: " + str(time.perf_counter() - start_time) + " seconds")

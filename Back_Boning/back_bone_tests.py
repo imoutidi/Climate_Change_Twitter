@@ -159,6 +159,11 @@ def run_backbone_fragments(thresh_couple):
                       r"Non_Parallel\new_num_of_nodes_list_2" + str(thresh_couple[2]), backbone_tester.number_of_nodes_list)
 
 
+def degree_dist_plots():
+    print()
+
+
+
 if __name__ == "__main__":
     # run_backbone_fragments((0, 1001000, 0))
     # run_bb_frag_in_parallel()
