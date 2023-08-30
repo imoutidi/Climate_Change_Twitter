@@ -37,11 +37,11 @@ class TweetArchiver:
         self.superdocs = self.db.super_documents
         self.stop_words = set(stopwords.words('english'))
         self.enrich_stopwords()
-        self.model = BertModel.from_pretrained('bert-base-uncased')
-        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        # self.model = BertModel.from_pretrained('bert-base-uncased')
+        # self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.sentence_vector = None
-        self.model_name = "word2vec-google-news-300"
-        self.word2vec_model = api.load(self.model_name)
+        # self.model_name = "word2vec-google-news-300"
+        # self.word2vec_model = api.load(self.model_name)
 
     def enrich_stopwords(self):
         list_of_additional_words = ["it's", "we're", "...", "there's", "you're", "he's",
@@ -79,15 +79,19 @@ class TweetArchiver:
         return preprocessed_text
 
     def parse_tweets(self):
+        date_dictionary = defaultdict(int)
         set_of_tweets = set()
         for folder_index in range(16):
             print(folder_index)
             for filename in os.listdir(self.input_path + str(folder_index)):
                 tweet_records = tools.load_pickle(self.input_path + str(folder_index) + r"\\" + filename)
                 for tweet_obj in tweet_records:
-                    if tweet_obj.id not in set_of_tweets:
-                        set_of_tweets.add(tweet_obj.id)
-                        self.mongo_insert(tweet_obj)
+                    date_dictionary[tweet_obj.created_at.year] += 1
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
+                          r"Tests\tweets_per_year", dict(date_dictionary))
+                    # if tweet_obj.id not in set_of_tweets:
+                    #     set_of_tweets.add(tweet_obj.id)
+                    #     self.mongo_insert(tweet_obj)
 
     def mongo_insert(self, tweet_object):
         author_username = tweet_object.author.name
@@ -252,10 +256,9 @@ if __name__ == "__main__":
     # climate_change_archiver.working_on_users()
     # climate_change_archiver.create_super_documents()
     # climate_change_archiver.doc_vectorizer_bert("tt")
-    climate_change_archiver.calculate_text_bert_vectors()
+    # climate_change_archiver.calculate_text_bert_vectors()
     # climate_change_archiver.manual_adding_records()
     # climate_change_archiver.gather_user_ids_with_many_tweets(10)
     # climate_change_archiver.indexing_users()
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\I_O\\"
     #                       r"Indexes\user_id_to_username")
-    print()

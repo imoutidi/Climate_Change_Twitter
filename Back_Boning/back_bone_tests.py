@@ -3,6 +3,7 @@ import time
 import networkx as nx
 import matplotlib.pyplot as plt
 import multiprocessing
+from collections import Counter
 import numpy as np
 from Tool_Pack import tools
 from Back_Boning import backboning
@@ -160,21 +161,73 @@ def run_backbone_fragments(thresh_couple):
 
 
 def degree_dist_plots():
+    data = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\\"
+                          r"Backbone_Degrees\151K\in_degrees")
+    # Extracting y values from the tuples
+    y_values = [pair[1] for pair in data]
+
+    # Counting occurrences of each y value
+    y_counts = Counter(y_values)
+
+    # Extracting unique y values and their counts
+    unique_y_values = list(y_counts.keys())
+    y_value_counts = list(y_counts.values())
     print()
 
+    # Creating a scatter plot of y values and their counts as individual dots
+    plt.scatter(unique_y_values, y_value_counts, marker='o')
+
+    # Adding labels and title
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel('Log(Number of Nodes)')
+    plt.ylabel('Log(Nodes Degree)')
+    plt.title('Log-Log Plot for the degree distribution of the Raw \n retweet graphs')
+
+    # Display the plot
+    plt.grid(True)
+    plt.savefig(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\\"
+                r"Tests\Backbone_Degrees\151K\151K_Out_Degrees.jpg")
+    # plt.show()
+
+def years_hist():
+    data_dict = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
+                                  r"Tests\tweets_per_year")
+    print()
+    # Extract labels and values from the dictionary
+    labels = list(data_dict.keys())
+    # values = list(data_dict.values())
+    values = [x/1000000 for x in data_dict.values()]
+
+    # Creating a histogram
+    plt.bar(labels, values)
+
+    # Adding labels and title
+    plt.xlabel('Year')
+    plt.ylabel('Millions of tweets.')
+    plt.title('Number of tweets per year.')
+
+    # Rotating x-axis labels for better visibility
+    plt.xticks(rotation=45, ha='right')
+
+    # Display the plot
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\\"
+                r"I_O\Tests\tweets_per_year.jpg")
+    plt.show()
 
 
 if __name__ == "__main__":
     # run_backbone_fragments((0, 1001000, 0))
     # run_bb_frag_in_parallel()
-    backbone_tester = BbTester(0)
+    # backbone_tester = BbTester(0)
     # backbone_tester.creation_of_digraph()
     # backbone_tester.components_ratios()
     # backbone_tester.merge_ratios()
-    backbone_tester.plot_ratios()
-    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\new_strong_ratios_list_0")
-    # b = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Tests\Backbone_Ratios\num_of_nodes_list")
-
+    # backbone_tester.plot_ratios()
+    degree_dist_plots()
+    # years_hist()
 
     print()
 
