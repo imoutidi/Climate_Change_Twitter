@@ -100,6 +100,8 @@ class Snapshots:
                           r"tweets_index_" + str(c_year), nn_index)
 
     def index_query(self, c_year):
+        labels, distances = 0, 0
+        all_labels_and_distances_list = list()
         parent_key_rt_dict = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\parent_retweet_to_childen")
         number_of_closest_neighbors = 1000
         year_index = tools.load_pickle(self.output_path + r"Indexes\LSH\tweets_index_" + str(c_year))
@@ -108,32 +110,35 @@ class Snapshots:
         db = client.Climate_Change_Tweets
         collection_tweets = db.tweet_documents
         bert_vector_list = list()
-        doc_record = collection_tweets.find_one({"tweet_id": list(date_dict_with_parents[c_year])[1000]})
-        print("Query full text:")
-        print(doc_record["full_text"])
-        bert_vector_list.append(np.array(doc_record["bert_vector"]))
-        bert_array = np.vstack(bert_vector_list)
-        print()
-        # "Dirty" workaround for the hnswlib bug. If the number of results "k" is too big it throws
-        # an RuntimeError exception. I catch it and reduce the size of "k"
-        while True:
-            try:
-                if number_of_closest_neighbors < 2:
+        for date_tweet_id in list(date_dict_with_parents[c_year]):
+            doc_record = collection_tweets.find_one({"tweet_id": date_tweet_id})
+
+            bert_vector_list.append(np.array(doc_record["bert_vector"]))
+            bert_array = np.vstack(bert_vector_list)
+
+            # "Dirty" workaround for the hnswlib bug. If the number of results "k" is too big it throws
+            # an RuntimeError exception. I catch it and reduce the size of "k"
+            while True:
+                try:
+                    if number_of_closest_neighbors < 2:
+                        labels, distances = 0, 0
+                        break
+                    labels, distances = year_index.knn_query(bert_array, k=int(number_of_closest_neighbors))
                     break
-                labels, distances = year_index.knn_query(bert_array, k=int(number_of_closest_neighbors))
-                break
-            except RuntimeError as run_time:
-                number_of_closest_neighbors /= 2
-        print("Top closest matches:")
-        for vector_index in labels[0]:
-            tweet_id = list(date_dict_with_parents[c_year])[vector_index]
-            doc_record = collection_tweets.find_one({"tweet_id": tweet_id})
-            # As mentioned in format_data_for_indexing() I replace the parent with the child of the retweet
-            # since I got retweets but not their parents in the database.
-            if doc_record is None:
-                child_id = parent_key_rt_dict[tweet_id][0]
-                doc_record = collection_tweets.find_one({"tweet_id": child_id})
-        return doc_record
+                except RuntimeError as run_time:
+                    number_of_closest_neighbors /= 2
+            all_labels_and_distances_list.append((labels, distances))
+
+            # This part retrieves the tweet texts.
+            # for vector_index in labels[0]:
+            #     tweet_id = list(date_dict_with_parents[c_year])[vector_index]
+            #     doc_record = collection_tweets.find_one({"tweet_id": tweet_id})
+            #     # As mentioned in format_data_for_indexing() I replace the parent with the child of the retweet
+            #     # since I got retweets but not their parents in the database.
+            #     if doc_record is None:
+            #         child_id = parent_key_rt_dict[tweet_id][0]
+            #         doc_record = collection_tweets.find_one({"tweet_id": child_id})
+        return all_labels_and_distances_list
 
 
 if __name__ == "__main__":
@@ -143,6 +148,6 @@ if __name__ == "__main__":
     # for y_idx in range(2009, 2020):
     #     print(y_idx)
     #     snaps.create_index(y_idx)
-    snaps.index_query(2019)
+    print(snaps.index_query(2019))
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Indexes\tweet_ids\date_dict_with_parents")
     print()
