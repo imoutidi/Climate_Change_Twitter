@@ -62,6 +62,7 @@ class Snapshots:
         for t_id in tweets_ids:
             doc_record = collection_tweets.find_one({"tweet_id": t_id})
             # if the parent id is not in the database we substitute it with one of its children.
+            # Remember to retrieve also with child id when you get the distances.
             if doc_record is None:
                 child_id = parent_key_rt_dict[t_id][0]
                 d_record = collection_tweets.find_one({"tweet_id": child_id})
@@ -99,14 +100,15 @@ class Snapshots:
                           r"tweets_index_" + str(c_year), nn_index)
 
     def index_query(self, c_year):
-        number_of_closest_neighbors = 2000
+        parent_key_rt_dict = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\parent_retweet_to_childen")
+        number_of_closest_neighbors = 1000
         year_index = tools.load_pickle(self.output_path + r"Indexes\LSH\tweets_index_" + str(c_year))
         date_dict_with_parents = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\date_dict_with_parents")
         client = MongoClient('localhost', 27017)
         db = client.Climate_Change_Tweets
         collection_tweets = db.tweet_documents
         bert_vector_list = list()
-        doc_record = collection_tweets.find_one({"tweet_id": list(date_dict_with_parents[c_year])[100]})
+        doc_record = collection_tweets.find_one({"tweet_id": list(date_dict_with_parents[c_year])[1000]})
         print("Query full text:")
         print(doc_record["full_text"])
         bert_vector_list.append(np.array(doc_record["bert_vector"]))
@@ -116,18 +118,22 @@ class Snapshots:
         # an RuntimeError exception. I catch it and reduce the size of "k"
         while True:
             try:
+                if number_of_closest_neighbors < 2:
+                    break
                 labels, distances = year_index.knn_query(bert_array, k=int(number_of_closest_neighbors))
                 break
             except RuntimeError as run_time:
                 number_of_closest_neighbors /= 2
-        print()
-
-
-        print("Top closests matches:")
+        print("Top closest matches:")
         for vector_index in labels[0]:
             tweet_id = list(date_dict_with_parents[c_year])[vector_index]
             doc_record = collection_tweets.find_one({"tweet_id": tweet_id})
-            print(doc_record["full_text"])
+            # As mentioned in format_data_for_indexing() I replace the parent with the child of the retweet
+            # since I got retweets but not their parents in the database.
+            if doc_record is None:
+                child_id = parent_key_rt_dict[tweet_id][0]
+                doc_record = collection_tweets.find_one({"tweet_id": child_id})
+        return doc_record
 
 
 if __name__ == "__main__":
