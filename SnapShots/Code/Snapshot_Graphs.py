@@ -16,17 +16,6 @@ class Snapshots:
         date_dictionary = defaultdict(list)
         child_key_rt_dict = defaultdict(list)
         parent_key_rt_dict = defaultdict(list)
-        counter_2009 = 0
-        counter_2010 = 0
-        counter_2011 = 0
-        counter_2012 = 0
-        counter_2013 = 0
-        counter_2014 = 0
-        counter_2015 = 0
-        counter_2016 = 0
-        counter_2017 = 0
-        counter_2018 = 0
-        counter_2019 = 0
         for folder_index in range(16):
             print(folder_index)
             for filename in os.listdir(self.input_path + str(folder_index)):
@@ -34,48 +23,12 @@ class Snapshots:
                 for tweet_obj in tweet_records:
                     if hasattr(tweet_obj, 'retweeted_status'):
                         # Keeping the retweets on this dictionary
-                        # child_key_rt_dict[tweet_obj.id].append(tweet_obj.retweeted_status.id)
-                        # parent_key_rt_dict[tweet_obj.retweeted_status.id].append(tweet_obj.id)
-                        # date_dictionary[tweet_obj.created_at.year].append(tweet_obj.id)
-                        if tweet_obj.created_at.year == 2009:
-                            counter_2009 += 1
-                        if tweet_obj.created_at.year == 2010:
-                            counter_2010 += 1
-                        if tweet_obj.created_at.year == 2011:
-                            counter_2011 += 1
-                        if tweet_obj.created_at.year == 2012:
-                            counter_2012 += 1
-                        if tweet_obj.created_at.year == 2013:
-                            counter_2013 += 1
-                        if tweet_obj.created_at.year == 2014:
-                            counter_2014 += 1
-                        if tweet_obj.created_at.year == 2015:
-                            counter_2015 += 1
-                        if tweet_obj.created_at.year == 2016:
-                            counter_2016 += 1
-                        if tweet_obj.created_at.year == 2017:
-                            counter_2017 += 1
-                        if tweet_obj.created_at.year == 2018:
-                            counter_2018 += 1
-                        if tweet_obj.created_at.year == 2019:
-                            counter_2019 += 1
-
+                        child_key_rt_dict[tweet_obj.id].append(tweet_obj.retweeted_status.id)
+                        parent_key_rt_dict[tweet_obj.retweeted_status.id].append(tweet_obj.id)
+                        date_dictionary[tweet_obj.created_at.year].append(tweet_obj.id)
                     else:
                         # This dictionary does not contain retweets
                         date_dictionary[tweet_obj.created_at.year].append(tweet_obj.id)
-        print("Counter 2009", counter_2009)
-        print("Counter 2010", counter_2010)
-        print("Counter 2011", counter_2011)
-        print("Counter 2012", counter_2012)
-        print("Counter 2013", counter_2013)
-        print("Counter 2014", counter_2014)
-        print("Counter 2015", counter_2015)
-        print("Counter 2016", counter_2016)
-        print("Counter 2017", counter_2017)
-        print("Counter 2018", counter_2018)
-        print("Counter 2019", counter_2019)
-
-        exit()
         # tools.save_pickle(self.output_path + r"Indexes\tweet_ids\dates_to_ids", date_dictionary)
         # tools.save_pickle(self.output_path + r"Indexes\tweet_ids\child_retweet_to_parent", child_key_rt_dict)
         # tools.save_pickle(self.output_path + r"Indexes\tweet_ids\parent_retweet_to_childen", parent_key_rt_dict)
