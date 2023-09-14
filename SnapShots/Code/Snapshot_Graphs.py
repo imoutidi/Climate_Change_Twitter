@@ -16,6 +16,17 @@ class Snapshots:
         date_dictionary = defaultdict(list)
         child_key_rt_dict = defaultdict(list)
         parent_key_rt_dict = defaultdict(list)
+        counter_2009 = 0
+        counter_2010 = 0
+        counter_2011 = 0
+        counter_2012 = 0
+        counter_2013 = 0
+        counter_2014 = 0
+        counter_2015 = 0
+        counter_2016 = 0
+        counter_2017 = 0
+        counter_2018 = 0
+        counter_2019 = 0
         for folder_index in range(16):
             print(folder_index)
             for filename in os.listdir(self.input_path + str(folder_index)):
@@ -23,15 +34,51 @@ class Snapshots:
                 for tweet_obj in tweet_records:
                     if hasattr(tweet_obj, 'retweeted_status'):
                         # Keeping the retweets on this dictionary
-                        child_key_rt_dict[tweet_obj.id].append(tweet_obj.retweeted_status.id)
-                        parent_key_rt_dict[tweet_obj.retweeted_status.id].append(tweet_obj.id)
-                        date_dictionary[tweet_obj.created_at.year].append(tweet_obj.id)
+                        # child_key_rt_dict[tweet_obj.id].append(tweet_obj.retweeted_status.id)
+                        # parent_key_rt_dict[tweet_obj.retweeted_status.id].append(tweet_obj.id)
+                        # date_dictionary[tweet_obj.created_at.year].append(tweet_obj.id)
+                        if tweet_obj.created_at.year == 2009:
+                            counter_2009 += 1
+                        if tweet_obj.created_at.year == 2010:
+                            counter_2010 += 1
+                        if tweet_obj.created_at.year == 2011:
+                            counter_2011 += 1
+                        if tweet_obj.created_at.year == 2012:
+                            counter_2012 += 1
+                        if tweet_obj.created_at.year == 2013:
+                            counter_2013 += 1
+                        if tweet_obj.created_at.year == 2014:
+                            counter_2014 += 1
+                        if tweet_obj.created_at.year == 2015:
+                            counter_2015 += 1
+                        if tweet_obj.created_at.year == 2016:
+                            counter_2016 += 1
+                        if tweet_obj.created_at.year == 2017:
+                            counter_2017 += 1
+                        if tweet_obj.created_at.year == 2018:
+                            counter_2018 += 1
+                        if tweet_obj.created_at.year == 2019:
+                            counter_2019 += 1
+
                     else:
                         # This dictionary does not contain retweets
                         date_dictionary[tweet_obj.created_at.year].append(tweet_obj.id)
-        tools.save_pickle(self.output_path + r"Indexes\tweet_ids\dates_to_ids", date_dictionary)
-        tools.save_pickle(self.output_path + r"Indexes\tweet_ids\child_retweet_to_parent", child_key_rt_dict)
-        tools.save_pickle(self.output_path + r"Indexes\tweet_ids\parent_retweet_to_childen", parent_key_rt_dict)
+        print("Counter 2009", counter_2009)
+        print("Counter 2010", counter_2010)
+        print("Counter 2011", counter_2011)
+        print("Counter 2012", counter_2012)
+        print("Counter 2013", counter_2013)
+        print("Counter 2014", counter_2014)
+        print("Counter 2015", counter_2015)
+        print("Counter 2016", counter_2016)
+        print("Counter 2017", counter_2017)
+        print("Counter 2018", counter_2018)
+        print("Counter 2019", counter_2019)
+
+        exit()
+        # tools.save_pickle(self.output_path + r"Indexes\tweet_ids\dates_to_ids", date_dictionary)
+        # tools.save_pickle(self.output_path + r"Indexes\tweet_ids\child_retweet_to_parent", child_key_rt_dict)
+        # tools.save_pickle(self.output_path + r"Indexes\tweet_ids\parent_retweet_to_childen", parent_key_rt_dict)
 
     def replace_retweets_with_parents(self):
         # Load indexes
@@ -48,7 +95,7 @@ class Snapshots:
                     date_dict_with_parents[year_idx].add(tweet_id)
         for year_idx in range(2009, 2020):
             date_dict_with_parents[year_idx] = list(date_dict_with_parents[year_idx])
-        tools.save_pickle(self.output_path + r"\Indexes\tweet_ids\date_dict_with_parents", date_dict_with_parents)
+        # tools.save_pickle(self.output_path + r"\Indexes\tweet_ids\date_dict_with_parents", date_dict_with_parents)
 
     def format_data_for_indexing(self, tweets_ids):
         parent_key_rt_dict = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\parent_retweet_to_childen")
@@ -103,14 +150,19 @@ class Snapshots:
         labels, distances = 0, 0
         all_labels_and_distances_list = list()
         parent_key_rt_dict = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\parent_retweet_to_childen")
-        number_of_closest_neighbors = 1000
+        number_of_closest_neighbors = 500
         year_index = tools.load_pickle(self.output_path + r"Indexes\LSH\tweets_index_" + str(c_year))
         date_dict_with_parents = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\date_dict_with_parents")
+        dates_to_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Indexes\tweet_ids\dates_to_ids")
+        print()
         client = MongoClient('localhost', 27017)
         db = client.Climate_Change_Tweets
         collection_tweets = db.tweet_documents
         bert_vector_list = list()
+        counter = 0
+        print(len(date_dict_with_parents[c_year]))
         for date_tweet_id in list(date_dict_with_parents[c_year]):
+            print(counter)
             doc_record = collection_tweets.find_one({"tweet_id": date_tweet_id})
 
             bert_vector_list.append(np.array(doc_record["bert_vector"]))
@@ -129,6 +181,8 @@ class Snapshots:
                     number_of_closest_neighbors /= 2
             all_labels_and_distances_list.append((labels, distances))
 
+            counter += 1
+
             # This part retrieves the tweet texts.
             # for vector_index in labels[0]:
             #     tweet_id = list(date_dict_with_parents[c_year])[vector_index]
@@ -138,16 +192,18 @@ class Snapshots:
             #     if doc_record is None:
             #         child_id = parent_key_rt_dict[tweet_id][0]
             #         doc_record = collection_tweets.find_one({"tweet_id": child_id})
-        return all_labels_and_distances_list
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
+                          r"Tweet_Documents_Distance\distances_of_" + str(c_year), all_labels_and_distances_list)
+        # return all_labels_and_distances_list
 
 
 if __name__ == "__main__":
     snaps = Snapshots()
-    # snaps.parse_tweets()
+    snaps.parse_tweets()
     # snaps.replace_retweets_with_parents()
     # for y_idx in range(2009, 2020):
     #     print(y_idx)
     #     snaps.create_index(y_idx)
-    print(snaps.index_query(2019))
+    # print(snaps.index_query(2010))
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Indexes\tweet_ids\date_dict_with_parents")
     print()
