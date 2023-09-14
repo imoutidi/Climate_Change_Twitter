@@ -4,6 +4,7 @@ import hnswlib
 import numpy as np
 from Tool_Pack import tools
 from pymongo import MongoClient
+import time
 
 class Snapshots:
 
@@ -103,11 +104,11 @@ class Snapshots:
         labels, distances = 0, 0
         all_labels_and_distances_list = list()
         parent_key_rt_dict = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\parent_retweet_to_childen")
-        number_of_closest_neighbors = 500
+        number_of_closest_neighbors = 200
         year_index = tools.load_pickle(self.output_path + r"Indexes\LSH\tweets_index_" + str(c_year))
         date_dict_with_parents = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\date_dict_with_parents")
-        dates_to_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Indexes\tweet_ids\dates_to_ids")
-        print()
+        # dates_to_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
+        #                                  r"SnapShots\I_O\Indexes\tweet_ids\dates_to_ids")
         client = MongoClient('localhost', 27017)
         db = client.Climate_Change_Tweets
         collection_tweets = db.tweet_documents
@@ -115,14 +116,16 @@ class Snapshots:
         counter = 0
         print(len(date_dict_with_parents[c_year]))
         for date_tweet_id in list(date_dict_with_parents[c_year]):
-            print(counter)
             doc_record = collection_tweets.find_one({"tweet_id": date_tweet_id})
 
             bert_vector_list.append(np.array(doc_record["bert_vector"]))
             bert_array = np.vstack(bert_vector_list)
+            # Do that to not accumulate all the vectors on the list.
+            bert_vector_list = list()
 
             # "Dirty" workaround for the hnswlib bug. If the number of results "k" is too big it throws
             # an RuntimeError exception. I catch it and reduce the size of "k"
+            print(counter)
             while True:
                 try:
                     if number_of_closest_neighbors < 2:
@@ -152,11 +155,14 @@ class Snapshots:
 
 if __name__ == "__main__":
     snaps = Snapshots()
-    snaps.parse_tweets()
+    # snaps.parse_tweets()
     # snaps.replace_retweets_with_parents()
     # for y_idx in range(2009, 2020):
     #     print(y_idx)
     #     snaps.create_index(y_idx)
-    # print(snaps.index_query(2010))
-    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Indexes\tweet_ids\date_dict_with_parents")
+    start_time = time.perf_counter()
+    snaps.index_query(2010)
+    print("Community detection processing time: " + str(time.perf_counter() - start_time) + " seconds")
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\\"
+    #                       r"I_O\Indexes\tweet_ids\date_dict_with_parents")
     print()
