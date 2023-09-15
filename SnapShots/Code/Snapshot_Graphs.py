@@ -117,7 +117,8 @@ class Snapshots:
         print(len(date_dict_with_parents[c_year]))
         for date_tweet_id in list(date_dict_with_parents[c_year]):
             doc_record = collection_tweets.find_one({"tweet_id": date_tweet_id})
-
+            if doc_record is None:
+                continue
             bert_vector_list.append(np.array(doc_record["bert_vector"]))
             bert_array = np.vstack(bert_vector_list)
             # Do that to not accumulate all the vectors on the list.
@@ -161,7 +162,7 @@ if __name__ == "__main__":
     #     print(y_idx)
     #     snaps.create_index(y_idx)
     start_time = time.perf_counter()
-    snaps.index_query(2010)
+    snaps.index_query(2011)
     print("Community detection processing time: " + str(time.perf_counter() - start_time) + " seconds")
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\\"
     #                       r"I_O\Indexes\tweet_ids\date_dict_with_parents")
