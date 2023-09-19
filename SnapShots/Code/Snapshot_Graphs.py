@@ -104,8 +104,9 @@ class Snapshots:
         labels, distances = 0, 0
         all_labels_and_distances_list = list()
         parent_key_rt_dict = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\parent_retweet_to_childen")
-        number_of_closest_neighbors = 200
+        number_of_closest_neighbors = 400
         year_index = tools.load_pickle(self.output_path + r"Indexes\LSH\tweets_index_" + str(c_year))
+        print()
         date_dict_with_parents = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\date_dict_with_parents")
         # dates_to_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
         #                                  r"SnapShots\I_O\Indexes\tweet_ids\dates_to_ids")
@@ -118,7 +119,10 @@ class Snapshots:
         for date_tweet_id in list(date_dict_with_parents[c_year]):
             doc_record = collection_tweets.find_one({"tweet_id": date_tweet_id})
             if doc_record is None:
+                all_labels_and_distances_list.append((None, None))
                 continue
+
+            # Prepare the vector for the index function.
             bert_vector_list.append(np.array(doc_record["bert_vector"]))
             bert_array = np.vstack(bert_vector_list)
             # Do that to not accumulate all the vectors on the list.
@@ -154,6 +158,30 @@ class Snapshots:
         # return all_labels_and_distances_list
 
 
+def count_rt_texts():
+    client = MongoClient('localhost', 27017)
+    db = client.Climate_Change_Tweets
+    collection_tweets = db.tweet_documents
+    date_dict = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
+                                  r"Indexes\tweet_ids\dates_to_ids")
+    rt_per_year = defaultdict(int)
+    for year in date_dict:
+        print(year)
+        for t_id in date_dict[year]:
+            doc_record = collection_tweets.find_one({"tweet_id": t_id})
+            # if the parent id is not in the database we substitute it with one of its children.
+            # Remember to retrieve also with child id when you get the distances.
+            if doc_record is not None:
+                if "RT" in doc_record["full_text"]:
+                    rt_per_year[year] += 1
+    tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
+                      r"Rehydrated_Tweets_per_Year\tests\rt_text_per_year", rt_per_year)
+
+
+
+    print()
+
+
 if __name__ == "__main__":
     snaps = Snapshots()
     # snaps.parse_tweets()
@@ -161,9 +189,11 @@ if __name__ == "__main__":
     # for y_idx in range(2009, 2020):
     #     print(y_idx)
     #     snaps.create_index(y_idx)
+    # !->
     start_time = time.perf_counter()
-    snaps.index_query(2011)
+    snaps.index_query(2012)
     print("Community detection processing time: " + str(time.perf_counter() - start_time) + " seconds")
-    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\\"
-    #                       r"I_O\Indexes\tweet_ids\date_dict_with_parents")
+    # !->
+    # count_rt_texts()
+
     print()
