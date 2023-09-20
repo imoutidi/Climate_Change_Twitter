@@ -24,11 +24,14 @@ class ContentGraph:
         distances = tools.load_pickle(self.distance_path + str(self.year))
         print()
 
-    def create_graph_files(self, percentage):
+    def create_graph_files(self):
         if not os.path.exists(self.graph_path + str(self.year)):
             os.makedirs(self.graph_path + str(self.year))
         date_tweets = tools.load_pickle(self.tweets_per_date_path)
         distances = tools.load_pickle(self.distance_path + str(self.year))
+
+        year_tweets = date_tweets[self.year]
+        print()
 
         # We create first the edge csv file because we also create an index, so we can know which
         # nodes are part of the X percent network we are working at the given time.
@@ -36,27 +39,33 @@ class ContentGraph:
         with open(self.graph_path + str(self.year) + r"\edges.csv", "w") as edge_file:
             edge_file.write("Source,Target,Weight\n")
             counter = 0
-            for rt_pair, num_of_rts in list_of_top_pairs.items():
-                percent_nodes.add(rt_pair[0])
-                percent_nodes.add(rt_pair[1])
-                print(counter)
-                counter += 1
-                edge_file.write(str(rt_pair[0]) + "," + str(rt_pair[1]) + "," + str(num_of_rts) + "\n")
+            for idx, distance_tuple in enumerate(distances):
+                # Converting numpy arrays to lists
+                d_indexes = distance_tuple[0][:1].tolist()[0]
+                d_distances = distance_tuple[1][:1].tolist()[0]
+                # for doc_index, doc_distance in zip(distance_tuple[0][1:], distance_tuple[1][1:]):
+                for doc_index, doc_distance in zip(d_indexes, d_distances):
+                    edge_file.write(str(year_tweets[idx]) + "," + str(year_tweets[doc_index]) +
+                                    "," + str(doc_distance) + "\n")
+                break
 
-        # Creating the node file
-        with open(self.output_path + r"Graph_files\\" + str(percentage) + r"_percent\\" + str(percentage)
-                  + r"p_nodes.csv", "w") as node_file:
-            node_file.write("id,label\n")
-            for node in percent_nodes:
-                if node in user_indexes:
-                    node_file.write(str(node) + "," + user_indexes[node] + "\n")
-                else:
-                    node_file.write(str(node) + "," + str(node) + "\n")
+            # for rt_pair, num_of_rts in list_of_top_pairs.items():
+            #     percent_nodes.add(rt_pair[0])
+            #     percent_nodes.add(rt_pair[1])
+            #     print(counter)
+            #     counter += 1
+            #     edge_file.write(str(rt_pair[0]) + "," + str(rt_pair[1]) + "," + str(num_of_rts) + "\n")
 
 
 if __name__ == "__main__":
     c_graph = ContentGraph(2009)
-    c_graph.calculate_distances()
+    # c_graph.calculate_distances()
+    c_graph.create_graph_files()
+
+
+
+
+# to check tweets on twitter https://twitter.com/twitter/status/1234903157580296192
 
 
 
