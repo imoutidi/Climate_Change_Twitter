@@ -34,6 +34,7 @@ class TweetArchiver:
         self.client = MongoClient('localhost', 27017)
         self.db = self.client.Climate_Change_Tweets
         self.collection = self.db.tweet_documents
+        # Super documents db does not exist anymore
         self.superdocs = self.db.super_documents
         self.stop_words = set(stopwords.words('english'))
         self.enrich_stopwords()
