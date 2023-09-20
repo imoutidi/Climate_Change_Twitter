@@ -36,18 +36,27 @@ class ContentGraph:
         # We create first the edge csv file because we also create an index, so we can know which
         # nodes are part of the X percent network we are working at the given time.
         # Creating the edge file
+
+        # max distance for normalization
+        max_distance = 0
         with open(self.graph_path + str(self.year) + r"\edges.csv", "w") as edge_file:
             edge_file.write("Source,Target,Weight\n")
             counter = 0
             for idx, distance_tuple in enumerate(distances):
+                print(idx)
                 # Converting numpy arrays to lists
                 d_indexes = distance_tuple[0][:1].tolist()[0]
                 d_distances = distance_tuple[1][:1].tolist()[0]
                 # for doc_index, doc_distance in zip(distance_tuple[0][1:], distance_tuple[1][1:]):
-                for doc_index, doc_distance in zip(d_indexes, d_distances):
+                for doc_index, doc_distance in zip(d_indexes[1:400], d_distances[1:400]):
+                    if doc_distance > max_distance:
+                        max_distance = doc_distance
+                for doc_index, doc_distance in zip(d_indexes[1:400], d_distances[1:400]):
+                    # I save the similarities for the graph.
                     edge_file.write(str(year_tweets[idx]) + "," + str(year_tweets[doc_index]) +
-                                    "," + str(doc_distance) + "\n")
-                break
+                                    "," + str(max_distance - doc_distance) + "\n")
+        print(max_distance)
+
 
             # for rt_pair, num_of_rts in list_of_top_pairs.items():
             #     percent_nodes.add(rt_pair[0])
