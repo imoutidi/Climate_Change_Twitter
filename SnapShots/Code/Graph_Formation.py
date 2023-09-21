@@ -1,6 +1,8 @@
 from Tool_Pack import tools
 from collections import defaultdict
 import os
+import csv
+import networkx as nx
 from pymongo import MongoClient
 import time
 
@@ -18,11 +20,10 @@ class ContentGraph:
         self.client = MongoClient('localhost', 27017)
         self.db = self.client.Climate_Change_Tweets
         self.collection = self.db.tweet_documents
-
-    def calculate_distances(self):
-        date_tweets = tools.load_pickle(self.tweets_per_date_path)
-        distances = tools.load_pickle(self.distance_path + str(self.year))
-        print()
+        # Graph init
+        self.random_seed = 123
+        self.content_coms = list()
+        self.content_graph = nx.Graph()
 
     def create_graph_files(self):
         if not os.path.exists(self.graph_path + str(self.year)):
@@ -39,39 +40,69 @@ class ContentGraph:
 
         # max distance for normalization
         max_distance = 0
+        loop_counter = 0
+        loop_checking_set = set()
         with open(self.graph_path + str(self.year) + r"\edges.csv", "w") as edge_file:
             edge_file.write("Source,Target,Weight\n")
-            counter = 0
             for idx, distance_tuple in enumerate(distances):
                 print(idx)
                 # Converting numpy arrays to lists
                 d_indexes = distance_tuple[0][:1].tolist()[0]
                 d_distances = distance_tuple[1][:1].tolist()[0]
-                # for doc_index, doc_distance in zip(distance_tuple[0][1:], distance_tuple[1][1:]):
                 for doc_index, doc_distance in zip(d_indexes[1:400], d_distances[1:400]):
                     if doc_distance > max_distance:
                         max_distance = doc_distance
-                for doc_index, doc_distance in zip(d_indexes[1:400], d_distances[1:400]):
-                    # I save the similarities for the graph.
-                    edge_file.write(str(year_tweets[idx]) + "," + str(year_tweets[doc_index]) +
-                                    "," + str(max_distance - doc_distance) + "\n")
-        print(max_distance)
+                for doc_index, doc_distance in zip(d_indexes[1:100], d_distances[1:100]):
+                    if (year_tweets[idx], year_tweets[doc_index]) not in loop_checking_set:
+                        # To avoid loops I insert also the reversed couple in the set
+                        loop_checking_set.add((year_tweets[idx], year_tweets[doc_index]))
+                        loop_checking_set.add((year_tweets[doc_index], year_tweets[idx]))
+                        # I save the similarities for the graph.
+                        edge_file.write(str(year_tweets[idx]) + "," + str(year_tweets[doc_index]) +
+                                        "," + str(max_distance - doc_distance) + "\n")
+                    else:
+                        print("Loop found!")
+                        loop_counter += 1
+                        print((year_tweets[idx], year_tweets[doc_index]))
+        print(loop_counter)
 
+    def create_graph_object(self):
+        with open(self.graph_path + str(self.year) + r"\edges.csv") as edge_file:
+            edge_reader = csv.reader(edge_file, delimiter=",")
+            # Skipping the headers
+            next(edge_reader)
+            for edge_info in edge_reader:
+                self.content_graph.add_edge(int(edge_info[0]), int(edge_info[1]), weight=float(edge_info[2]))
 
-            # for rt_pair, num_of_rts in list_of_top_pairs.items():
-            #     percent_nodes.add(rt_pair[0])
-            #     percent_nodes.add(rt_pair[1])
-            #     print(counter)
-            #     counter += 1
-            #     edge_file.write(str(rt_pair[0]) + "," + str(rt_pair[1]) + "," + str(num_of_rts) + "\n")
+        degree_list = list()
+        for degree_tuple in self.content_graph.degree:
+            degree_list.append(degree_tuple)
+        print()
+
+    # Detects communities on the graph using the Louvain community detection algorithm.
+    # The communities are saved only in the object.
+    def community_detection(self, com_size_threshold=0.01):
+        communities = nx.community.louvain_communities(self.content_graph, weight="weight", resolution=1,
+                                                       seed=self.random_seed)
+        self.content_coms = communities
+        # Calculating the actual number of X% of the graphs nodes.
+        com_threshold_size = len(self.directed_graph) * com_size_threshold
+        for idx, com_nodes in enumerate(communities):
+            com_labels = list()
+            # Sorting the nodes based on their in degree on the retweet graph.
+            com_nodes = sorted(com_nodes, key=lambda x: self.directed_graph.in_degree[x], reverse=True)
+            for node_id in com_nodes:
+                com_labels.append(self.author_ids_to_labels[node_id])
+            if len(com_nodes) > com_threshold_size:
+                self.top_com_nodes.append((com_labels, com_nodes))
+        # We sort the list of the top communities based on their size
+        self.top_com_nodes = sorted(self.top_com_nodes, key=lambda x: len(x[1]), reverse=True)
 
 
 if __name__ == "__main__":
     c_graph = ContentGraph(2009)
-    # c_graph.calculate_distances()
     c_graph.create_graph_files()
-
-
+    # c_graph.create_graph_object()
 
 
 # to check tweets on twitter https://twitter.com/twitter/status/1234903157580296192

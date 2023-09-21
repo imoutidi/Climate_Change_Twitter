@@ -191,7 +191,7 @@ if __name__ == "__main__":
     #     snaps.create_index(y_idx)
     # !->
     start_time = time.perf_counter()
-    snaps.index_query(2014)
+    snaps.index_query(2016)
     print("Community detection processing time: " + str(time.perf_counter() - start_time) + " seconds")
     # !->
     # count_rt_texts()
