@@ -2,8 +2,13 @@ from Tool_Pack import tools
 from collections import defaultdict
 import os
 import csv
+import statistics
 import networkx as nx
 from pymongo import MongoClient
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.ticker import ScalarFormatter
 import time
 
 
@@ -27,53 +32,60 @@ class ContentGraph:
         self.content_graph = nx.Graph()
 
     def create_graph_files(self):
+        num_of_distances_per_tweet = 400
         if not os.path.exists(self.graph_path + str(self.year)):
             os.makedirs(self.graph_path + str(self.year))
         date_tweets = tools.load_pickle(self.tweets_per_date_path)
         distances = tools.load_pickle(self.distance_path + str(self.year))
 
         year_tweets = date_tweets[self.year]
-        print()
-
-        # We create first the edge csv file because we also create an index, so we can know which
-        # nodes are part of the X percent network we are working at the given time.
-        # Creating the edge file
 
         # max distance for normalization
         max_distance = 0
-        # Calculating the mean to prune out insignificant distances
-        acumulated_distances = 0
-        mean_distance = 0
+        # Calculating standard deviation and mean to prune out insignificant distances
+        all_distances = list()
 
+        # Checking for node loops if two nodes are pointing to each other.
         loop_counter = 0
         loop_checking_set = set()
 
         for idx, distance_tuple in enumerate(distances):
-            print(idx)
+            # print(idx)
             # Converting numpy arrays to lists
-            d_indexes = distance_tuple[0][:1].tolist()[0]
-            d_distances = distance_tuple[1][:1].tolist()[0]
-            for doc_index, doc_distance in zip(d_indexes[1:400], d_distances[1:400]):
-                acumulated_distances += doc_distance
-                if doc_distance > max_distance:
-                    max_distance = doc_distance
-            mean_distance = acumulated_distances / len(distances) * 399
+            if distance_tuple is not None:
+                d_indexes = distance_tuple[0][:1].tolist()[0]
+                d_distances = distance_tuple[1][:1].tolist()[0]
+                for doc_index, doc_distance in zip(d_indexes[1:num_of_distances_per_tweet],
+                                                   d_distances[1:num_of_distances_per_tweet]):
+                    all_distances.append(doc_distance)
+                    if doc_distance > max_distance:
+                        max_distance = doc_distance
+
+        all_distances = self.remove_outliers(all_distances)
+        self.distribution_plot(all_distances, self.year)
+        exit()
+
+        standard_dev = statistics.pstdev(all_distances)
+        distance_mean = statistics.mean(all_distances)
+        print()
 
         with open(self.graph_path + str(self.year) + r"\edges.csv", "w") as edge_file:
             edge_file.write("Source,Target,Weight\n")
             for idx, distance_tuple in enumerate(distances):
-                print(idx)
-                # Converting numpy arrays to lists
-                d_indexes = distance_tuple[0][:1].tolist()[0]
-                d_distances = distance_tuple[1][:1].tolist()[0]
-                for doc_index, doc_distance in zip(d_indexes[1:100], d_distances[1:100]):
-                    if (year_tweets[idx], year_tweets[doc_index]) not in loop_checking_set:
-                        # To avoid loops I insert also the reversed couple in the set
-                        loop_checking_set.add((year_tweets[idx], year_tweets[doc_index]))
-                        loop_checking_set.add((year_tweets[doc_index], year_tweets[idx]))
-                        # I save the similarities for the graph.
-                        edge_file.write(str(year_tweets[idx]) + "," + str(year_tweets[doc_index]) +
-                                        "," + str(1 - (doc_distance/max_distance)) + "\n")
+                if distance_tuple is not None:
+                    print(idx)
+                    # Converting numpy arrays to lists
+                    d_indexes = distance_tuple[0][:1].tolist()[0]
+                    d_distances = distance_tuple[1][:1].tolist()[0]
+                    for doc_index, doc_distance in zip(d_indexes[1:400], d_distances[1:400]):
+                        if (year_tweets[idx], year_tweets[doc_index]) not in loop_checking_set:
+                            # To avoid loops I insert also the reversed couple in the set
+                            loop_checking_set.add((year_tweets[idx], year_tweets[doc_index]))
+                            loop_checking_set.add((year_tweets[doc_index], year_tweets[idx]))
+                            # I save the similarities for the graph.
+                            if doc_distance < distance_mean:
+                                edge_file.write(str(year_tweets[idx]) + "," + str(year_tweets[doc_index]) +
+                                                "," + str(1 - (doc_distance/max_distance)) + "\n")
                     # else:
                         # print("Loop found!")
                         # loop_counter += 1
@@ -111,11 +123,41 @@ class ContentGraph:
         # We sort the list of the top communities based on their size
         self.top_community_nodes = sorted(self.top_community_nodes, key=lambda x: len(x[1]), reverse=True)
 
+    @staticmethod
+    def distribution_plot(dist_list, d_year):
+        sns.histplot(dist_list, kde=True)  # You can also use sns.distplot() for older versions of Seaborn
+        # # Add labels and title
+        plt.xlabel('Values')
+        plt.ylabel('Frequency')
+        plt.title('Distribution Plot')
+        # Show the plot
+        # plt.show()
+        plt.savefig(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
+                    r"Tests\Distance_Distributions\Dist_of_" + str(d_year))
+
+    @staticmethod
+    def remove_outliers(dist_list):
+        # Calculate the IQR (Interquartile Range)
+        Q1 = np.percentile(dist_list, 25)
+        Q3 = np.percentile(dist_list, 75)
+        IQR = Q3 - Q1
+
+        # Define the lower and upper bounds for outliers
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+
+        # Remove outliers from the list
+        filtered_data = [x for x in dist_list if lower_bound <= x <= upper_bound]
+        return filtered_data
+
+
 
 if __name__ == "__main__":
-    c_graph = ContentGraph(2009)
-    c_graph.create_graph_files()
-    c_graph.create_graph_object()
+    for i in range(2011, 2015):
+        print(i)
+        c_graph = ContentGraph(i)
+        c_graph.create_graph_files()
+    # c_graph.create_graph_object()
     # c_graph.community_detection(0.02)
     print()
 
