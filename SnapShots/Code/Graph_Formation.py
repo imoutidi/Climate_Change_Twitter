@@ -50,7 +50,6 @@ class ContentGraph:
         loop_checking_set = set()
 
         for idx, distance_tuple in enumerate(distances):
-            # print(idx)
             # Converting numpy arrays to lists
             if distance_tuple[0] is not None:
                 d_indexes = distance_tuple[0][:1].tolist()[0]
@@ -63,11 +62,9 @@ class ContentGraph:
 
         all_distances = self.remove_outliers(all_distances)
         self.distribution_plot(all_distances, self.year)
-        exit()
 
-        standard_dev = statistics.pstdev(all_distances)
+        # standard_dev = statistics.pstdev(all_distances)
         distance_mean = statistics.mean(all_distances)
-        print()
 
         with open(self.graph_path + str(self.year) + r"\edges.csv", "w") as edge_file:
             edge_file.write("Source,Target,Weight\n")
@@ -117,6 +114,8 @@ class ContentGraph:
                 self.top_community_nodes.append(com_nodes)
         # We sort the list of the top communities based on their size
         self.top_community_nodes = sorted(self.top_community_nodes, key=lambda x: len(x[1]), reverse=True)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\"
+                          r"2009\communities", self.top_community_nodes)
 
     @staticmethod
     def distribution_plot(dist_list, d_year):
@@ -147,10 +146,10 @@ class ContentGraph:
 
 
 if __name__ == "__main__":
-    c_graph = ContentGraph(2014)
+    c_graph = ContentGraph(2009)
     c_graph.create_graph_files()
-    # c_graph.create_graph_object()
-    # c_graph.community_detection(0.02)
+    c_graph.create_graph_object()
+    c_graph.community_detection()
     print()
 
 
