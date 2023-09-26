@@ -52,7 +52,7 @@ class ContentGraph:
         for idx, distance_tuple in enumerate(distances):
             # print(idx)
             # Converting numpy arrays to lists
-            if distance_tuple is not None:
+            if distance_tuple[0] is not None:
                 d_indexes = distance_tuple[0][:1].tolist()[0]
                 d_distances = distance_tuple[1][:1].tolist()[0]
                 for doc_index, doc_distance in zip(d_indexes[1:num_of_distances_per_tweet],
@@ -72,7 +72,7 @@ class ContentGraph:
         with open(self.graph_path + str(self.year) + r"\edges.csv", "w") as edge_file:
             edge_file.write("Source,Target,Weight\n")
             for idx, distance_tuple in enumerate(distances):
-                if distance_tuple is not None:
+                if distance_tuple[0] is not None:
                     print(idx)
                     # Converting numpy arrays to lists
                     d_indexes = distance_tuple[0][:1].tolist()[0]
@@ -83,14 +83,9 @@ class ContentGraph:
                             loop_checking_set.add((year_tweets[idx], year_tweets[doc_index]))
                             loop_checking_set.add((year_tweets[doc_index], year_tweets[idx]))
                             # I save the similarities for the graph.
-                            if doc_distance < distance_mean:
+                            if 0.0 < doc_distance < distance_mean:
                                 edge_file.write(str(year_tweets[idx]) + "," + str(year_tweets[doc_index]) +
                                                 "," + str(1 - (doc_distance/max_distance)) + "\n")
-                    # else:
-                        # print("Loop found!")
-                        # loop_counter += 1
-                        # print((year_tweets[idx], year_tweets[doc_index]))
-        # print(loop_counter)
 
     def create_graph_object(self):
         with open(self.graph_path + str(self.year) + r"\edges.csv") as edge_file:
@@ -151,12 +146,9 @@ class ContentGraph:
         return filtered_data
 
 
-
 if __name__ == "__main__":
-    for i in range(2011, 2015):
-        print(i)
-        c_graph = ContentGraph(i)
-        c_graph.create_graph_files()
+    c_graph = ContentGraph(2014)
+    c_graph.create_graph_files()
     # c_graph.create_graph_object()
     # c_graph.community_detection(0.02)
     print()

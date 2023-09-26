@@ -103,11 +103,14 @@ class Snapshots:
     def index_query(self, c_year):
         labels, distances = 0, 0
         all_labels_and_distances_list = list()
-        parent_key_rt_dict = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\parent_retweet_to_childen")
+        # parent_key_rt_dict = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\parent_retweet_to_childen")
         number_of_closest_neighbors = 400
         year_index = tools.load_pickle(self.output_path + r"Indexes\LSH\tweets_index_" + str(c_year))
         print()
         date_dict_with_parents = tools.load_pickle(self.output_path + r"Indexes\tweet_ids\date_dict_with_parents")
+        # tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Indexes\tweet_ids\\"
+        #                   r"per_year\tweet_ids_2016", date_dict_with_parents[2016])
+
         # dates_to_ids = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
         #                                  r"SnapShots\I_O\Indexes\tweet_ids\dates_to_ids")
         client = MongoClient('localhost', 27017)
@@ -116,33 +119,43 @@ class Snapshots:
         bert_vector_list = list()
         counter = 0
         print(len(date_dict_with_parents[c_year]))
+
+        bert_array_list = list()
         for date_tweet_id in list(date_dict_with_parents[c_year]):
+            print(counter)
+            counter += 1
             doc_record = collection_tweets.find_one({"tweet_id": date_tweet_id})
             if doc_record is None:
                 all_labels_and_distances_list.append((None, None))
+                bert_array_list.append([None, None])
                 continue
 
             # Prepare the vector for the index function.
             bert_vector_list.append(np.array(doc_record["bert_vector"]))
             bert_array = np.vstack(bert_vector_list)
+            bert_array_list.append(bert_array)
             # Do that to not accumulate all the vectors on the list.
             bert_vector_list = list()
 
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Indexes\tweet_ids\\"
+                          r"per_year\berts_2016", bert_array_list)
+        exit()
+
             # "Dirty" workaround for the hnswlib bug. If the number of results "k" is too big it throws
             # an RuntimeError exception. I catch it and reduce the size of "k"
-            print(counter)
-            while True:
-                try:
-                    if number_of_closest_neighbors < 2:
-                        labels, distances = 0, 0
-                        break
-                    labels, distances = year_index.knn_query(bert_array, k=int(number_of_closest_neighbors))
-                    break
-                except RuntimeError as run_time:
-                    number_of_closest_neighbors /= 2
-            all_labels_and_distances_list.append((labels, distances))
-
-            counter += 1
+            # print(counter)
+            # while True:
+            #     try:
+            #         if number_of_closest_neighbors < 2:
+            #             labels, distances = 0, 0
+            #             break
+            #         labels, distances = year_index.knn_query(bert_array, k=int(number_of_closest_neighbors))
+            #         break
+            #     except RuntimeError as run_time:
+            #         number_of_closest_neighbors /= 2
+            # all_labels_and_distances_list.append((labels, distances))
+            #
+            # counter += 1
 
             # This part retrieves the tweet texts.
             # for vector_index in labels[0]:
@@ -153,8 +166,8 @@ class Snapshots:
             #     if doc_record is None:
             #         child_id = parent_key_rt_dict[tweet_id][0]
             #         doc_record = collection_tweets.find_one({"tweet_id": child_id})
-        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
-                          r"Tweet_Documents_Distance\distances_of_" + str(c_year), all_labels_and_distances_list)
+        # tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
+        #                   r"Tweet_Documents_Distance\b_distances_of_" + str(c_year), all_labels_and_distances_list)
         # return all_labels_and_distances_list
 
 
@@ -191,7 +204,7 @@ if __name__ == "__main__":
     #     snaps.create_index(y_idx)
     # !->
     start_time = time.perf_counter()
-    snaps.index_query(2016)
+    snaps.index_query(2015)
     print("Community detection processing time: " + str(time.perf_counter() - start_time) + " seconds")
     # !->
     # count_rt_texts()
