@@ -74,7 +74,7 @@ class ContentGraph:
                     # Converting numpy arrays to lists
                     d_indexes = distance_tuple[0][:1].tolist()[0]
                     d_distances = distance_tuple[1][:1].tolist()[0]
-                    for doc_index, doc_distance in zip(d_indexes[1:400], d_distances[1:400]):
+                    for doc_index, doc_distance in zip(d_indexes[1:50], d_distances[1:50]):
                         if (year_tweets[idx], year_tweets[doc_index]) not in loop_checking_set:
                             # To avoid loops I insert also the reversed couple in the set
                             loop_checking_set.add((year_tweets[idx], year_tweets[doc_index]))
@@ -112,10 +112,11 @@ class ContentGraph:
             com_nodes = sorted(com_nodes, key=lambda x: self.content_graph.degree[x], reverse=True)
             if len(com_nodes) > com_threshold_size:
                 self.top_community_nodes.append(com_nodes)
+        print()
         # We sort the list of the top communities based on their size
-        self.top_community_nodes = sorted(self.top_community_nodes, key=lambda x: len(x[1]), reverse=True)
+        self.top_community_nodes = sorted(self.top_community_nodes, key=lambda x: len(x), reverse=True)
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\"
-                          r"2009\communities", self.top_community_nodes)
+                          + str(self.year) + r"\communities", self.top_community_nodes)
 
     @staticmethod
     def distribution_plot(dist_list, d_year):
@@ -147,7 +148,7 @@ class ContentGraph:
 
 if __name__ == "__main__":
     c_graph = ContentGraph(2009)
-    c_graph.create_graph_files()
+    # c_graph.create_graph_files()
     c_graph.create_graph_object()
     c_graph.community_detection()
     print()
