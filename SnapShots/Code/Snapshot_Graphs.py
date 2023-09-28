@@ -121,7 +121,7 @@ class Snapshots:
         print(len(date_dict_with_parents[c_year]))
 
         bert_array_list = list()
-        for date_tweet_id in list(date_dict_with_parents[c_year]):
+        for date_tweet_id in list(date_dict_with_parents[c_year][:2]):
             print(counter)
             counter += 1
             doc_record = collection_tweets.find_one({"tweet_id": date_tweet_id})
@@ -133,29 +133,26 @@ class Snapshots:
             # Prepare the vector for the index function.
             bert_vector_list.append(np.array(doc_record["bert_vector"]))
             bert_array = np.vstack(bert_vector_list)
-            bert_array_list.append(bert_array)
+            # bert_array_list.append(bert_array)
             # Do that to not accumulate all the vectors on the list.
             bert_vector_list = list()
 
-        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Indexes\tweet_ids\\"
-                          r"per_year\berts_2016", bert_array_list)
-        exit()
+        # tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Indexes\tweet_ids\\"
+        #                   r"per_year\berts_2016", bert_array_list)
 
             # "Dirty" workaround for the hnswlib bug. If the number of results "k" is too big it throws
             # an RuntimeError exception. I catch it and reduce the size of "k"
             # print(counter)
-            # while True:
-            #     try:
-            #         if number_of_closest_neighbors < 2:
-            #             labels, distances = 0, 0
-            #             break
-            #         labels, distances = year_index.knn_query(bert_array, k=int(number_of_closest_neighbors))
-            #         break
-            #     except RuntimeError as run_time:
-            #         number_of_closest_neighbors /= 2
-            # all_labels_and_distances_list.append((labels, distances))
-            #
-            # counter += 1
+            while True:
+                try:
+                    if number_of_closest_neighbors < 2:
+                        labels, distances = 0, 0
+                        break
+                    labels, distances = year_index.knn_query(bert_array, k=int(number_of_closest_neighbors))
+                    break
+                except RuntimeError as run_time:
+                    number_of_closest_neighbors /= 2
+            all_labels_and_distances_list.append((labels, distances))
 
             # This part retrieves the tweet texts.
             # for vector_index in labels[0]:
@@ -166,8 +163,9 @@ class Snapshots:
             #     if doc_record is None:
             #         child_id = parent_key_rt_dict[tweet_id][0]
             #         doc_record = collection_tweets.find_one({"tweet_id": child_id})
-        # tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
-        #                   r"Tweet_Documents_Distance\b_distances_of_" + str(c_year), all_labels_and_distances_list)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
+                          r"Tweet_Documents_Distance\\" + str(c_year) + r"\b_distances_of_" + str(c_year),
+                          all_labels_and_distances_list)
         # return all_labels_and_distances_list
 
 
@@ -186,6 +184,7 @@ def count_rt_texts():
             # Remember to retrieve also with child id when you get the distances.
             if doc_record is not None:
                 if "RT" in doc_record["full_text"]:
+
                     rt_per_year[year] += 1
     tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
                       r"Rehydrated_Tweets_per_Year\tests\rt_text_per_year", rt_per_year)

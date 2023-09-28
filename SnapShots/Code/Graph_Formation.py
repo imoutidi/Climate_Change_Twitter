@@ -125,6 +125,7 @@ class ContentGraph:
     def community_wordclouds(self):
         self.top_community_nodes = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
                                                      r"SnapShots\I_O\Graphs\\" + str(self.year) + r"\communities")
+        word_frequencies_per_community = list()
         for tweet_id in self.top_community_nodes[5]:
             doc_record = self.collection.find_one({"tweet_id": tweet_id})
             print()
