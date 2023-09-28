@@ -1,4 +1,6 @@
 from Tool_Pack import tools
+from wordcloud import WordCloud
+from PIL import Image
 from collections import defaultdict
 import os
 import csv
@@ -20,6 +22,8 @@ class ContentGraph:
                              r"Tweet_Documents_Distance\distances_of_"
         self.tweets_per_date_path = r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Indexes\\" \
                                     r"tweet_ids\date_dict_with_parents"
+        self.circle_path = r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\\" \
+                           r"Climate_Changed\Images\c1.png"
         self.year = year
         # Pymongo init
         self.client = MongoClient('localhost', 27017)
@@ -108,7 +112,7 @@ class ContentGraph:
         # Calculating the actual number of X% of the graphs nodes.
         com_threshold_size = len(self.content_graph) * com_size_threshold
         for idx, com_nodes in enumerate(communities):
-            # Sorting the nodes based on their in degree on the retweet graph.
+            # Sorting the nodes based on their degree on the retweet graph.
             com_nodes = sorted(com_nodes, key=lambda x: self.content_graph.degree[x], reverse=True)
             if len(com_nodes) > com_threshold_size:
                 self.top_community_nodes.append(com_nodes)
@@ -117,6 +121,28 @@ class ContentGraph:
         self.top_community_nodes = sorted(self.top_community_nodes, key=lambda x: len(x), reverse=True)
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\"
                           + str(self.year) + r"\communities", self.top_community_nodes)
+
+    def community_wordclouds(self):
+        self.top_community_nodes = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
+                                                     r"SnapShots\I_O\Graphs\\" + str(self.year) + r"\communities")
+        for tweet_id in self.top_community_nodes[5]:
+            doc_record = self.collection.find_one({"tweet_id": tweet_id})
+            print()
+
+        mask = np.array(Image.open(self.path + r"Images\c1.png"))
+        input_dict = [{"a": 20, "b": 30, "c": 15, "d": 20, "e": 50, "f": 15, "g": 30,
+                       "h": 20, "i": 10, "j": 10, "k": 17, "l": 30, "m": 40, "n": 20,
+                       "o": 30, "p": 10, "q": 50, "r": 40, "s": 20, "t": 10, "w": 30}]
+        list_of_input_dicts = self.convert_to_list_of_dict(self.top_com_nodes)
+
+        # for idx, com in enumerate(anno_coms):
+        for idx, community_dict in enumerate(list_of_input_dicts):
+            wc = WordCloud(background_color=self.color_dict[idx], mask=mask, max_words=60, prefer_horizontal=1,
+                           contour_width=70, collocations=False, margin=1, width=660, height=660, contour_color="black",
+                           color_func=lambda *args, **kwargs: (0, 0, 0))
+            wc.generate_from_frequencies(community_dict)
+            wc.to_file(self.output_path + "community_" + str(idx) + ".png")
+
 
     @staticmethod
     def distribution_plot(dist_list, d_year):
@@ -147,10 +173,14 @@ class ContentGraph:
 
 
 if __name__ == "__main__":
-    c_graph = ContentGraph(2009)
-    # c_graph.create_graph_files()
-    c_graph.create_graph_object()
-    c_graph.community_detection()
+    for i in range(2010, 2015):
+        c_graph = ContentGraph(i)
+        c_graph.create_graph_files()
+        c_graph.create_graph_object()
+        c_graph.community_detection()
+    # c_graph.print_community_text()
+
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\2009\communities")
     print()
 
 
