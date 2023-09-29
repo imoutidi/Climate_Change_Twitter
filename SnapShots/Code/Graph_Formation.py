@@ -1,17 +1,26 @@
-from Tool_Pack import tools
-from wordcloud import WordCloud
-from PIL import Image
-from collections import defaultdict
+import re
 import os
 import csv
+import time
+from Tool_Pack import tools
+from collections import defaultdict
 import statistics
 import networkx as nx
 from pymongo import MongoClient
+import numpy as np
+
+# Plotting
+from matplotlib.ticker import ScalarFormatter
 import seaborn as sns
 import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.ticker import ScalarFormatter
-import time
+from wordcloud import WordCloud
+from PIL import Image
+
+# NLP stuff
+import spacy
+import nltk
+nltk.download('stopwords')
+from nltk.corpus import stopwords
 
 
 class ContentGraph:
@@ -126,9 +135,14 @@ class ContentGraph:
         self.top_community_nodes = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
                                                      r"SnapShots\I_O\Graphs\\" + str(self.year) + r"\communities")
         word_frequencies_per_community = list()
-        for tweet_id in self.top_community_nodes[5]:
-            doc_record = self.collection.find_one({"tweet_id": tweet_id})
-            print()
+        for t_community in self.top_community_nodes:
+            word_frequency_dict = dict()
+            for tweet_id in t_community:
+                doc_record = self.collection.find_one({"tweet_id": tweet_id})
+                key_words = self.keyword_extractor(doc_record["full_text"])
+                noun_phrases = self.noun_phrase_extractor(doc_record["full_text"])
+
+                print()
 
         mask = np.array(Image.open(self.path + r"Images\c1.png"))
         input_dict = [{"a": 20, "b": 30, "c": 15, "d": 20, "e": 50, "f": 15, "g": 30,
@@ -172,14 +186,44 @@ class ContentGraph:
         filtered_data = [x for x in dist_list if lower_bound <= x <= upper_bound]
         return filtered_data
 
+    @staticmethod
+    def keyword_extractor(tweet_text):
+        word_list = tweet_text.split()
+
+        # Remove URLs
+        cleaned_words = [word for word in word_list if not re.match(r'https?://\S+', word)]
+
+        # Remove punctuation and convert to lowercase
+        cleaned_words = [re.sub(r'[^\w\s]', '', word.lower()) for word in cleaned_words]
+
+        # Remove stopwords
+        stopwords_set = set(stopwords.words('english'))
+        stopwords_set.add("thats")
+        cleaned_words = [word for word in cleaned_words if word not in stopwords_set]
+
+        return cleaned_words
+
+
+    @staticmethod
+    def noun_phrase_extractor(tweet_text):
+        # Load the spaCy English model
+        # Download the model with python -m spacy download en_core_web_sm
+        # or run spacy.cli.download("en_core_web_sm") into the code
+        nlp = spacy.load("en_core_web_sm")
+        doc = nlp("Your text goes here.")
+        # Extract noun phrases
+        noun_phrases = [chunk.text for chunk in doc.noun_chunks]
+
+        return noun_phrases
+
 
 if __name__ == "__main__":
     for i in range(2010, 2015):
         c_graph = ContentGraph(i)
-        c_graph.create_graph_files()
-        c_graph.create_graph_object()
-        c_graph.community_detection()
-    # c_graph.print_community_text()
+        # c_graph.create_graph_files()
+        # c_graph.create_graph_object()
+        # c_graph.community_detection()
+        c_graph.community_wordclouds()
 
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\2009\communities")
     print()
