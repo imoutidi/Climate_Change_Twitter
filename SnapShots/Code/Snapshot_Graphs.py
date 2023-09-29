@@ -121,7 +121,7 @@ class Snapshots:
         print(len(date_dict_with_parents[c_year]))
 
         bert_array_list = list()
-        for date_tweet_id in list(date_dict_with_parents[c_year][:2]):
+        for date_tweet_id in list(date_dict_with_parents[c_year][300000:400000]):
             print(counter)
             counter += 1
             doc_record = collection_tweets.find_one({"tweet_id": date_tweet_id})
@@ -164,7 +164,7 @@ class Snapshots:
             #         child_id = parent_key_rt_dict[tweet_id][0]
             #         doc_record = collection_tweets.find_one({"tweet_id": child_id})
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
-                          r"Tweet_Documents_Distance\\" + str(c_year) + r"\b_distances_of_" + str(c_year),
+                          r"Tweet_Documents_Distance\\" + str(c_year) + r"\4_distances_of_" + str(c_year),
                           all_labels_and_distances_list)
         # return all_labels_and_distances_list
 
@@ -207,5 +207,4 @@ if __name__ == "__main__":
     print("Community detection processing time: " + str(time.perf_counter() - start_time) + " seconds")
     # !->
     # count_rt_texts()
-
     print()
