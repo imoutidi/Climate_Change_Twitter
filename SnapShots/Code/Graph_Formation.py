@@ -1,7 +1,7 @@
 import re
 import os
 import csv
-import time
+import math
 from Tool_Pack import tools
 from collections import defaultdict
 import statistics
@@ -19,8 +19,11 @@ from PIL import Image
 # NLP stuff
 import spacy
 import nltk
-nltk.download('stopwords')
+# nltk.download('stopwords')
 from nltk.corpus import stopwords
+from nltk.util import everygrams
+from nltk import FreqDist
+from nltk.tokenize import word_tokenize
 
 
 class ContentGraph:
@@ -137,12 +140,13 @@ class ContentGraph:
         word_frequencies_per_community = list()
         for t_community in self.top_community_nodes:
             word_frequency_dict = dict()
+            tweet_list =list()
             for tweet_id in t_community:
                 doc_record = self.collection.find_one({"tweet_id": tweet_id})
-                key_words = self.keyword_extractor(doc_record["full_text"])
-                noun_phrases = self.noun_phrase_extractor(doc_record["full_text"])
-
-                print()
+                key_words = self.keyword_extractor(doc_record["full_text"], mode="sentence")
+                # noun_phrases = self.noun_phrase_extractor(doc_record["full_text"])
+                tweet_list.append(key_words)
+            self.ngram_noun_phrases(tweet_list)
 
         mask = np.array(Image.open(self.path + r"Images\c1.png"))
         input_dict = [{"a": 20, "b": 30, "c": 15, "d": 20, "e": 50, "f": 15, "g": 30,
@@ -187,7 +191,7 @@ class ContentGraph:
         return filtered_data
 
     @staticmethod
-    def keyword_extractor(tweet_text):
+    def keyword_extractor(tweet_text, mode="word_list"):
         word_list = tweet_text.split()
 
         # Remove URLs
@@ -198,11 +202,13 @@ class ContentGraph:
 
         # Remove stopwords
         stopwords_set = set(stopwords.words('english'))
-        stopwords_set.add("thats")
+        stopwords_set.update(["thats", "rt"])
         cleaned_words = [word for word in cleaned_words if word not in stopwords_set]
 
-        return cleaned_words
+        if mode == "sentence":
+            cleaned_words = " ".join(cleaned_words)
 
+        return cleaned_words
 
     @staticmethod
     def noun_phrase_extractor(tweet_text):
@@ -210,11 +216,33 @@ class ContentGraph:
         # Download the model with python -m spacy download en_core_web_sm
         # or run spacy.cli.download("en_core_web_sm") into the code
         nlp = spacy.load("en_core_web_sm")
-        doc = nlp("Your text goes here.")
+        doc = nlp(tweet_text)
         # Extract noun phrases
         noun_phrases = [chunk.text for chunk in doc.noun_chunks]
 
         return noun_phrases
+
+    @staticmethod
+    def ngram_noun_phrases(tweet_text_list):
+        # Tokenize the texts and create bigrams
+        tokenized_texts = [word_tokenize(text.lower()) for text in tweet_text_list]
+        text_ngrams = [list(everygrams(tokens, min_len=2, max_len=5)) for tokens in tokenized_texts]
+
+        # Flatten the list of ngrams
+        all_ngrams = [ngram for sublist in text_ngrams for ngram in sublist]
+
+        # Calculate the frequency of each bigram
+        ngram_freq = FreqDist(all_ngrams)
+
+        # Calculate the mean frequency of bigrams
+        all_frequencies = list()
+        for freq_value in ngram_freq.values():
+            all_frequencies.append(freq_value)
+        freq_std = statistics.pstdev(all_frequencies)
+        freq_mean = statistics.mean(all_frequencies)
+        target_frequency = math.ceil(freq_mean + freq_std)
+
+        print()
 
 
 if __name__ == "__main__":
