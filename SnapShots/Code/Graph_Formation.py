@@ -16,14 +16,8 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from PIL import Image
 
-# NLP stuff
-import spacy
-import nltk
-# nltk.download('stopwords')
-from nltk.corpus import stopwords
-from nltk.util import everygrams
-from nltk import FreqDist
-from nltk.tokenize import word_tokenize
+# N_Grams
+import Nouns_and_Ngrams
 
 
 class ContentGraph:
@@ -46,6 +40,14 @@ class ContentGraph:
         self.content_coms = list()
         self.top_community_nodes = list()
         self.content_graph = nx.Graph()
+        # Wordclouds
+        self.wordcloud_path = r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\" + \
+                              str(self.year) + r"\Wordclouds\\"
+        self.color_dict = {0: "#ff5793", 1: "#91cda2", 2: "#00996d", 3: "#e2bd6a", 4: "#2a4b67", 5: "#00deeb",
+                           6: "#97c8e6", 7: "#b44806", 8: "#8c58a6", 9: "#ff5053", 10: "#c7a6ac", 11: "#68f4d2",
+                           12: "#00c4ff", 13: "#962f4b", 14: "#f9a200", 15: "#afc400", 16: "#ff7b00", 17: "#63b939",
+                           18: "#602f4b", 19: "#008198", 20: "#402f2b", 21: "#afc400", 22: "#39e200", 23: "#ff7aff",
+                           24: "#ff7a11"}
 
     def create_graph_files(self):
         num_of_distances_per_tweet = 400
@@ -138,29 +140,29 @@ class ContentGraph:
         self.top_community_nodes = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
                                                      r"SnapShots\I_O\Graphs\\" + str(self.year) + r"\communities")
         word_frequencies_per_community = list()
-        for t_community in self.top_community_nodes:
+        for idx, t_community in enumerate(self.top_community_nodes):
             word_frequency_dict = dict()
             tweet_list =list()
             for tweet_id in t_community:
                 doc_record = self.collection.find_one({"tweet_id": tweet_id})
-                key_words = self.keyword_extractor(doc_record["full_text"], mode="sentence")
+                key_words = Nouns_and_Ngrams.keyword_extractor(doc_record["full_text"], mode="sentence")
                 # noun_phrases = self.noun_phrase_extractor(doc_record["full_text"])
                 tweet_list.append(key_words)
-            self.ngram_noun_phrases(tweet_list)
+            community_significant_ngrams = Nouns_and_Ngrams.ngram_noun_phrases(tweet_list)
+            print("Creating")
+            # input_dict = {"a": 20, "b": 30, "c": 15, "d": 20, "e": 50, "f": 15, "g": 30,
+            #                "h": 20, "i": 10, "j": 10, "k": 17, "l": 30, "m": 40, "n": 20,
+            #                "o": 30, "p": 10, "q": 50, "r": 40, "s": 20, "t": 10, "w": 30}
 
-        mask = np.array(Image.open(self.path + r"Images\c1.png"))
-        input_dict = [{"a": 20, "b": 30, "c": 15, "d": 20, "e": 50, "f": 15, "g": 30,
-                       "h": 20, "i": 10, "j": 10, "k": 17, "l": 30, "m": 40, "n": 20,
-                       "o": 30, "p": 10, "q": 50, "r": 40, "s": 20, "t": 10, "w": 30}]
-        list_of_input_dicts = self.convert_to_list_of_dict(self.top_com_nodes)
+            mask = np.array(Image.open(self.circle_path))
 
-        # for idx, com in enumerate(anno_coms):
-        for idx, community_dict in enumerate(list_of_input_dicts):
-            wc = WordCloud(background_color=self.color_dict[idx], mask=mask, max_words=60, prefer_horizontal=1,
+            wc = WordCloud(background_color=self.color_dict[idx], mask=mask, max_words=200, prefer_horizontal=1,
                            contour_width=70, collocations=False, margin=1, width=660, height=660, contour_color="black",
                            color_func=lambda *args, **kwargs: (0, 0, 0))
-            wc.generate_from_frequencies(community_dict)
-            wc.to_file(self.output_path + "community_" + str(idx) + ".png")
+            wc.generate_from_frequencies(community_significant_ngrams)
+            wc.to_file(self.wordcloud_path + "community_" + str(idx) + ".png")
+            print("done")
+
 
 
     @staticmethod
@@ -190,63 +192,9 @@ class ContentGraph:
         filtered_data = [x for x in dist_list if lower_bound <= x <= upper_bound]
         return filtered_data
 
-    @staticmethod
-    def keyword_extractor(tweet_text, mode="word_list"):
-        word_list = tweet_text.split()
-
-        # Remove URLs
-        cleaned_words = [word for word in word_list if not re.match(r'https?://\S+', word)]
-
-        # Remove punctuation and convert to lowercase
-        cleaned_words = [re.sub(r'[^\w\s]', '', word.lower()) for word in cleaned_words]
-
-        # Remove stopwords
-        stopwords_set = set(stopwords.words('english'))
-        stopwords_set.update(["thats", "rt"])
-        cleaned_words = [word for word in cleaned_words if word not in stopwords_set]
-
-        if mode == "sentence":
-            cleaned_words = " ".join(cleaned_words)
-
-        return cleaned_words
-
-    @staticmethod
-    def noun_phrase_extractor(tweet_text):
-        # Load the spaCy English model
-        # Download the model with python -m spacy download en_core_web_sm
-        # or run spacy.cli.download("en_core_web_sm") into the code
-        nlp = spacy.load("en_core_web_sm")
-        doc = nlp(tweet_text)
-        # Extract noun phrases
-        noun_phrases = [chunk.text for chunk in doc.noun_chunks]
-
-        return noun_phrases
-
-    @staticmethod
-    def ngram_noun_phrases(tweet_text_list):
-        # Tokenize the texts and create bigrams
-        tokenized_texts = [word_tokenize(text.lower()) for text in tweet_text_list]
-        text_ngrams = [list(everygrams(tokens, min_len=2, max_len=5)) for tokens in tokenized_texts]
-
-        # Flatten the list of ngrams
-        all_ngrams = [ngram for sublist in text_ngrams for ngram in sublist]
-
-        # Calculate the frequency of each bigram
-        ngram_freq = FreqDist(all_ngrams)
-
-        # Calculate the mean frequency of bigrams
-        all_frequencies = list()
-        for freq_value in ngram_freq.values():
-            all_frequencies.append(freq_value)
-        freq_std = statistics.pstdev(all_frequencies)
-        freq_mean = statistics.mean(all_frequencies)
-        target_frequency = math.ceil(freq_mean + freq_std)
-
-        print()
-
 
 if __name__ == "__main__":
-    for i in range(2010, 2015):
+    for i in range(2009, 2010):
         c_graph = ContentGraph(i)
         # c_graph.create_graph_files()
         # c_graph.create_graph_object()
