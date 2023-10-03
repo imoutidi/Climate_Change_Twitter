@@ -17,7 +17,13 @@ from wordcloud import WordCloud
 from PIL import Image
 
 # N_Grams
-import Nouns_and_Ngrams
+# NLP stuff
+import spacy
+import nltk
+from nltk.corpus import stopwords
+from nltk.util import everygrams
+from nltk import FreqDist
+from nltk.tokenize import word_tokenize
 
 
 class ContentGraph:
@@ -78,6 +84,7 @@ class ContentGraph:
                     if doc_distance > max_distance:
                         max_distance = doc_distance
 
+        # Creating distribution plots of the distances between documents.
         all_distances = self.remove_outliers(all_distances)
         self.distribution_plot(all_distances, self.year)
 
@@ -139,30 +146,27 @@ class ContentGraph:
     def community_wordclouds(self):
         self.top_community_nodes = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
                                                      r"SnapShots\I_O\Graphs\\" + str(self.year) + r"\communities")
+        if not os.path.exists(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\"
+                              + str(self.year) + r"\Wordclouds"):
+            os.makedirs(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\"
+                              + str(self.year) + r"\Wordclouds")
         word_frequencies_per_community = list()
         for idx, t_community in enumerate(self.top_community_nodes):
             word_frequency_dict = dict()
             tweet_list =list()
             for tweet_id in t_community:
                 doc_record = self.collection.find_one({"tweet_id": tweet_id})
-                key_words = Nouns_and_Ngrams.keyword_extractor(doc_record["full_text"], mode="sentence")
+                key_words = self.keyword_extractor(doc_record["full_text"], mode="sentence")
                 # noun_phrases = self.noun_phrase_extractor(doc_record["full_text"])
                 tweet_list.append(key_words)
-            community_significant_ngrams = Nouns_and_Ngrams.ngram_noun_phrases(tweet_list)
-            print("Creating")
-            # input_dict = {"a": 20, "b": 30, "c": 15, "d": 20, "e": 50, "f": 15, "g": 30,
-            #                "h": 20, "i": 10, "j": 10, "k": 17, "l": 30, "m": 40, "n": 20,
-            #                "o": 30, "p": 10, "q": 50, "r": 40, "s": 20, "t": 10, "w": 30}
+            community_significant_ngrams = self.ngram_noun_phrases(tweet_list)
 
             mask = np.array(Image.open(self.circle_path))
-
             wc = WordCloud(background_color=self.color_dict[idx], mask=mask, max_words=200, prefer_horizontal=1,
                            contour_width=70, collocations=False, margin=1, width=660, height=660, contour_color="black",
                            color_func=lambda *args, **kwargs: (0, 0, 0))
             wc.generate_from_frequencies(community_significant_ngrams)
             wc.to_file(self.wordcloud_path + "community_" + str(idx) + ".png")
-            print("done")
-
 
 
     @staticmethod
@@ -192,16 +196,80 @@ class ContentGraph:
         filtered_data = [x for x in dist_list if lower_bound <= x <= upper_bound]
         return filtered_data
 
+    @staticmethod
+    def keyword_extractor(tweet_text, mode="word_list"):
+        word_list = tweet_text.split()
+
+        # Remove URLs
+        cleaned_words = [word for word in word_list if not re.match(r'https?://\S+', word)]
+
+        # Remove punctuation and convert to lowercase
+        cleaned_words = [re.sub(r'[^\w\s]', '', word.lower()) for word in cleaned_words]
+
+        # Remove stopwords
+        stopwords_set = set(stopwords.words('english'))
+        stopwords_set.update(["thats", "rt"])
+        cleaned_words = [word for word in cleaned_words if word not in stopwords_set]
+
+        if mode == "sentence":
+            cleaned_words = " ".join(cleaned_words)
+
+        return cleaned_words
+
+    @staticmethod
+    def noun_phrase_extractor(tweet_text):
+        # Load the spaCy English model
+        # Download the model with python -m spacy download en_core_web_sm
+        # or run spacy.cli.download("en_core_web_sm") into the code
+        nlp = spacy.load("en_core_web_sm")
+        doc = nlp(tweet_text)
+        # Extract noun phrases
+        noun_phrases = [chunk.text for chunk in doc.noun_chunks]
+
+        return noun_phrases
+
+    @staticmethod
+    def ngram_noun_phrases(tweet_text_list):
+        # Tokenize the texts and create bigrams
+        tokenized_texts = [word_tokenize(text.lower()) for text in tweet_text_list]
+        text_ngrams = [list(everygrams(tokens, min_len=2, max_len=5)) for tokens in tokenized_texts]
+
+        # Flatten the list of ngrams
+        all_ngrams = [ngram for sublist in text_ngrams for ngram in sublist]
+
+        # Calculate the frequency of each bigram
+        ngram_freq = FreqDist(all_ngrams)
+
+        # Calculate the mean frequency of bigrams
+        all_frequencies = list()
+        for freq_value in ngram_freq.values():
+            all_frequencies.append(freq_value)
+        freq_std = statistics.pstdev(all_frequencies)
+        freq_mean = statistics.mean(all_frequencies)
+        target_frequency = math.ceil(freq_mean + freq_std)
+
+        significant_ngrams = dict()
+
+        for n_gram, n_freq in ngram_freq.items():
+            if n_freq > target_frequency:
+                n_gram = " ".join(n_gram)
+                if "climate" not in n_gram and "change" not in n_gram \
+                        and "warming" not in n_gram and "global" not in n_gram:
+                    significant_ngrams[n_gram] = n_freq
+
+        return significant_ngrams
+
 
 if __name__ == "__main__":
-    for i in range(2009, 2010):
+    for i in range(2010, 2015):
         c_graph = ContentGraph(i)
         # c_graph.create_graph_files()
         # c_graph.create_graph_object()
         # c_graph.community_detection()
         c_graph.community_wordclouds()
 
-    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\2009\communities")
+
+
     print()
 
 

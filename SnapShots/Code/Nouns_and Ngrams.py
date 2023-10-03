@@ -10,6 +10,11 @@ from nltk import FreqDist
 from nltk.tokenize import word_tokenize
 
 
+class Alpha:
+    def __init__(self):
+        print("initialized")
+
+
 def keyword_extractor(tweet_text, mode="word_list"):
     word_list = tweet_text.split()
 
