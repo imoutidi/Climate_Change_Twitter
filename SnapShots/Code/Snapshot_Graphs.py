@@ -131,7 +131,8 @@ class Snapshots:
             # Prepare the vector for the index function.
             bert_vector_list.append(np.array(doc_record["bert_vector"]))
             bert_array = np.vstack(bert_vector_list)
-            # bert_array_list.append(bert_array)
+            # This line is for preparing bert arrays to run on the hpc server.
+            bert_array_list.append(bert_array)
             # Do that to not accumulate all the vectors on the list.
             bert_vector_list = list()
 

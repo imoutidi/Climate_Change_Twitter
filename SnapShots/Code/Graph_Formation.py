@@ -143,6 +143,29 @@ class ContentGraph:
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\"
                           + str(self.year) + r"\communities", self.top_community_nodes)
 
+    def community_tweets_list(self):
+        self.top_community_nodes = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
+                                                     r"SnapShots\I_O\Graphs\\" + str(self.year) + r"\communities")
+        if not os.path.exists(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\"
+                              + str(self.year) + r"\Community_Content"):
+            os.makedirs(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\"
+                              + str(self.year) + r"\Community_Content")
+        if not os.path.exists(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\"
+                              + str(self.year) + r"\Community_Content\Tweet_Text"):
+            os.makedirs(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\"
+                              + str(self.year) + r"\Community_Content\Tweet_Text")
+        for idx, t_community in enumerate(self.top_community_nodes):
+            with open(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\" + str(self.year) +
+                      r"Community_Content\Tweet_Text\Community_" + str(idx) + ".txt", "w", encoding="utf-8") \
+                    as text_file:
+                for tweet_id in t_community:
+                    doc_record = self.collection.find_one({"tweet_id": tweet_id})
+                    tweet_text = doc_record["full_text"]
+                    author_id = doc_record["author_id"]
+                    text_file.write(tweet_text + "\n")
+
+
+
     def community_wordclouds(self):
         self.top_community_nodes = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
                                                      r"SnapShots\I_O\Graphs\\" + str(self.year) + r"\communities")
@@ -261,12 +284,13 @@ class ContentGraph:
 
 
 if __name__ == "__main__":
-    for i in range(2010, 2015):
+    for i in range(2009, 2015):
         c_graph = ContentGraph(i)
         # c_graph.create_graph_files()
         # c_graph.create_graph_object()
         # c_graph.community_detection()
-        c_graph.community_wordclouds()
+        # c_graph.community_wordclouds()
+        c_graph.community_tweets_list()
 
 
 
