@@ -156,7 +156,7 @@ class ContentGraph:
                               + str(self.year) + r"\Community_Content\Tweet_Text")
         for idx, t_community in enumerate(self.top_community_nodes):
             with open(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Graphs\\" + str(self.year) +
-                      r"Community_Content\Tweet_Text\Community_" + str(idx) + ".txt", "w", encoding="utf-8") \
+                      r"\Community_Content\Tweet_Text\Community_" + str(idx) + ".txt", "w", encoding="utf-8") \
                     as text_file:
                 for tweet_id in t_community:
                     doc_record = self.collection.find_one({"tweet_id": tweet_id})
