@@ -153,6 +153,7 @@ class Snapshots:
                     number_of_closest_neighbors /= 2
             all_labels_and_distances_list.append((labels, distances))
 
+
             # This part retrieves the tweet texts.
             # for vector_index in labels[0]:
             #     tweet_id = list(date_dict_with_parents[c_year])[vector_index]
