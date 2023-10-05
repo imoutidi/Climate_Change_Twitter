@@ -119,7 +119,7 @@ class Snapshots:
         print(len(date_dict_with_parents[c_year]))
 
         bert_array_list = list()
-        for date_tweet_id in list(date_dict_with_parents[c_year][800000:900000]):
+        for date_tweet_id in list(date_dict_with_parents[c_year][900000:1000000]):
             print(counter)
             counter += 1
             doc_record = collection_tweets.find_one({"tweet_id": date_tweet_id})

@@ -11,14 +11,17 @@ class CorpusMaster:
 
     def parse_tweets(self):
         date_dictionary = defaultdict(int)
-        set_of_tweets = set()
+        bancars_tweets = list()
         for folder_index in range(16):
             print(folder_index)
             for filename in os.listdir(self.input_path + str(folder_index)):
                 tweet_records = tools.load_pickle(self.input_path + str(folder_index) + r"\\" + filename)
                 for tweet_obj in tweet_records:
-                    date_dictionary[tweet_obj.created_at.year] += 1
-                    print()
+                    if "#bancars" in tweet_obj.full_text:
+                        bancars_tweets.append(tweet_obj)
+
+                    # date_dictionary[tweet_obj.created_at.year] += 1
+
 
 
 if __name__ == "__main__":
