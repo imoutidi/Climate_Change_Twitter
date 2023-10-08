@@ -120,7 +120,7 @@ class Snapshots:
         print(len(date_dict_with_parents[c_year]))
 
         bert_array_list = list()
-        for date_tweet_id in list(date_dict_with_parents[c_year][900000:1000000]):
+        for date_tweet_id in list(date_dict_with_parents[c_year][1000000:]):
             print(counter)
             counter += 1
             doc_record = collection_tweets.find_one({"tweet_id": date_tweet_id})
@@ -165,7 +165,7 @@ class Snapshots:
             #         child_id = parent_key_rt_dict[tweet_id][0]
             #         doc_record = collection_tweets.find_one({"tweet_id": child_id})
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
-                          r"Tweet_Documents_Distance\\" + str(c_year) + r"\10_distances_of_" + str(c_year),
+                          r"Tweet_Documents_Distance\\" + str(c_year) + r"\11_distances_of_" + str(c_year),
                           all_labels_and_distances_list)
         # return all_labels_and_distances_list
 

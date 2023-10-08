@@ -1,6 +1,7 @@
 import os
 import re
 from operator import itemgetter
+from nltk.corpus import stopwords
 from Tool_Pack import tools
 from collections import defaultdict
 
@@ -37,7 +38,7 @@ class CorpusMaster:
                     word_list = tweet_text.split()
                     # Remove URLs
                     no_urls = [word.lower() for word in word_list if not re.match(r'https?://\S+', word)]
-                    no_specials = [word.strip(":;'\"?.,<>*(){}[]!") for word in no_urls]
+                    no_specials = [word.strip(":;'\"?.,<>*(){}[]!-_+=") for word in no_urls]
                     no_apostrophes = [word[:-2] if word.endswith("'s") else word for word in no_specials]
                     for keyword in no_apostrophes:
                         keyword_dictionary[keyword] += 1
@@ -49,7 +50,17 @@ class CorpusMaster:
                           r"keyword_DF", list_of_keyword_tuples)
 
 
+    def create_climate_stopwords(self):
+        stop_words = set(stopwords.words('english'))
+        climate_dfs = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\\"
+                                            r"I_O\Tests\User_Based_Tests\keyword_DF")
+        print()
+
+
+
+
 if __name__ == "__main__":
     c_corpus = CorpusMaster()
     # c_corpus.parse_tweets()
-    c_corpus.calculate_term_df()
+    # c_corpus.calculate_term_df()
+    c_corpus.create_climate_stopwords()
