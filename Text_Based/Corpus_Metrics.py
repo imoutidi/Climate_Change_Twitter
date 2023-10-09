@@ -56,8 +56,8 @@ class CorpusMaster:
                                         r"I_O\Tests\User_Based_Tests\keyword_DF")
         test_counter = 0
         for df_tuple in climate_dfs:
-            if len(df_tuple[0]) < 2:
-                print(df_tuple)
+            if df_tuple[1] < 3:
+                # print(df_tuple)
                 test_counter += 1
         print(test_counter)
 
