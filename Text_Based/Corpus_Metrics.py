@@ -12,6 +12,7 @@ class CorpusMaster:
         self.path = r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\\"
         self.input_path = self.path + r"Downloaded_Tweets\\"
         self.twitter_stopwords = set()
+        self.word_to_user_inverted_index = defaultdict(list)
 
     def parse_tweets(self):
         date_dictionary = defaultdict(int)
@@ -55,11 +56,32 @@ class CorpusMaster:
         climate_dfs = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\\"
                                         r"I_O\Tests\User_Based_Tests\keyword_DF")
         test_counter = 0
-        for df_tuple in climate_dfs:
-            if df_tuple[1] < 3:
-                # print(df_tuple)
-                test_counter += 1
-        print(test_counter)
+        for idx, df_tuple in enumerate(climate_dfs):
+            if idx < 100:
+                self.twitter_stopwords.add(df_tuple[0])
+            if df_tuple[1] < 4:
+                self.twitter_stopwords.add(df_tuple[0])
+            if len(df_tuple[0]) < 2:
+                self.twitter_stopwords.add(df_tuple[0])
+        for s_word in stop_words:
+            self.twitter_stopwords.add(s_word)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\mega_stop_words",
+                          self.twitter_stopwords)
+
+    def create_inverted_index(self):
+        for folder_index in range(16):
+            print(folder_index)
+            for filename in os.listdir(self.input_path + str(folder_index)):
+                tweet_records = tools.load_pickle(self.input_path + str(folder_index) + r"\\" + filename)
+                # iterate on the corpus tweets
+                for tweet_obj in tweet_records:
+                    tweet_text = tweet_obj.full_text
+                    word_list = tweet_text.split()
+                    # Remove URLs
+                    clean_urls = [word.lower() for word in word_list if not re.match(r'https?://\S+', word)]
+                    no_specials = [word.strip(":;'\"?.,<>*(){}[]!-_+=") for word in clean_urls]
+                    clean_apostrophes = [word[:-2] if word.endswith("'s") else word for word in no_specials]
+
 
 
 if __name__ == "__main__":
