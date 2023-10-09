@@ -11,6 +11,7 @@ class CorpusMaster:
     def __init__(self):
         self.path = r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\\"
         self.input_path = self.path + r"Downloaded_Tweets\\"
+        self.twitter_stopwords = set()
 
     def parse_tweets(self):
         date_dictionary = defaultdict(int)
@@ -49,14 +50,16 @@ class CorpusMaster:
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Tests\User_Based_Tests\\"
                           r"keyword_DF", list_of_keyword_tuples)
 
-
     def create_climate_stopwords(self):
         stop_words = set(stopwords.words('english'))
         climate_dfs = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\\"
-                                            r"I_O\Tests\User_Based_Tests\keyword_DF")
-        print()
-
-
+                                        r"I_O\Tests\User_Based_Tests\keyword_DF")
+        test_counter = 0
+        for df_tuple in climate_dfs:
+            if len(df_tuple[0]) < 2:
+                print(df_tuple)
+                test_counter += 1
+        print(test_counter)
 
 
 if __name__ == "__main__":
