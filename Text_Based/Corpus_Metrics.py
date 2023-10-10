@@ -11,8 +11,17 @@ class CorpusMaster:
     def __init__(self):
         self.path = r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\I_O\Datasets\Climate_Changed\\"
         self.input_path = self.path + r"Downloaded_Tweets\\"
-        self.twitter_stopwords = set()
-        self.word_to_user_inverted_index = defaultdict(list)
+        self.twitter_stopwords = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
+                                                   r"Text_Based\I_O\Pivot\mega_stop_words")
+        # Default dict of a default dict need the lambda hack to make it work.
+        # https://stackoverflow.com/questions/5029934/defaultdict-of-defaultdict
+        # one issue here is that it is not pickleble
+        # self.word_to_user_inverted_index = defaultdict(lambda: defaultdict(int))
+        # A pickleble version is this
+        # import functools
+        # dd_int = functools.partial(defaultdict, int)
+        # defaultdict(dd_int)
+        self.word_to_user_inverted_index = dict()
 
     def parse_tweets(self):
         date_dictionary = defaultdict(int)
@@ -81,11 +90,23 @@ class CorpusMaster:
                     clean_urls = [word.lower() for word in word_list if not re.match(r'https?://\S+', word)]
                     no_specials = [word.strip(":;'\"?.,<>*(){}[]!-_+=") for word in clean_urls]
                     clean_apostrophes = [word[:-2] if word.endswith("'s") else word for word in no_specials]
-
+                    for clean_word in clean_apostrophes:
+                        if clean_word not in self.twitter_stopwords:
+                            if clean_word not in self.word_to_user_inverted_index:
+                                self.word_to_user_inverted_index[clean_word] = dict()
+                                self.word_to_user_inverted_index[clean_word][tweet_obj.author.id] = 1
+                            else:
+                                if tweet_obj.author.id not in self.word_to_user_inverted_index[clean_word]:
+                                    self.word_to_user_inverted_index[clean_word][tweet_obj.author.id] = 1
+                                else:
+                                    self.word_to_user_inverted_index[clean_word][tweet_obj.author.id] += 1
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\\"
+                          r"keyword_to_userid_to frequency_inverted_index", self.word_to_user_inverted_index)
 
 
 if __name__ == "__main__":
     c_corpus = CorpusMaster()
     # c_corpus.parse_tweets()
     # c_corpus.calculate_term_df()
-    c_corpus.create_climate_stopwords()
+    # c_corpus.create_climate_stopwords()
+    c_corpus.create_inverted_index()
