@@ -196,6 +196,8 @@ def count_rt_texts():
 
 
 if __name__ == "__main__":
+    a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\Tweet_Documents_Distance\2017\Distances_Parts\7_2017")
+    print()
     snaps = Snapshots()
     # snaps.parse_tweets()
     # snaps.replace_retweets_with_parents()

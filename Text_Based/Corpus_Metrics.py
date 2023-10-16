@@ -1,5 +1,6 @@
 import os
 import re
+import math
 from operator import itemgetter
 from nltk.corpus import stopwords
 from Tool_Pack import tools
@@ -13,6 +14,7 @@ class CorpusMaster:
         self.input_path = self.path + r"Downloaded_Tweets\\"
         self.twitter_stopwords = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
                                                    r"Text_Based\I_O\Pivot\mega_stop_words")
+        self.user_to_post_count = defaultdict(int)
         # Default dict of a default dict need the lambda hack to make it work.
         # https://stackoverflow.com/questions/5029934/defaultdict-of-defaultdict
         # one issue here is that it is not pickleble
@@ -78,6 +80,18 @@ class CorpusMaster:
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\mega_stop_words",
                           self.twitter_stopwords)
 
+    def count_users_posts(self):
+        for folder_index in range(16):
+            print(folder_index)
+            for filename in os.listdir(self.input_path + str(folder_index)):
+                tweet_records = tools.load_pickle(self.input_path + str(folder_index) + r"\\" + filename)
+                # iterate on the corpus tweets
+                for tweet_obj in tweet_records:
+                    self.user_to_post_count[tweet_obj.author.id] += 1
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
+                          r"Pivot\user_to_post_count_dict", self.user_to_post_count)
+
+
     def create_inverted_index(self):
         for folder_index in range(16):
             print(folder_index)
@@ -118,26 +132,42 @@ class CorpusMaster:
             self.user_index[user_id] = sorted(self.user_index[user_id], key=itemgetter(1), reverse=True)
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
                           r"user_to_keywords_list", self.user_index)
-    def normalize_user_index(self):
+
+    @staticmethod
+    def normalize_user_index():
         user_index = tools.load_pickle(
             r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\user_to_keywords_list")
+        counter = 0
+        for user_id, k_list in user_index.items():
+            counter += len(k_list)
+        mean_keywords_per_user = math.floor(counter/len(user_index))
+
         for user_id, keyword_list in user_index.items():
             sum_of_frequencies = 0
-            for word_tuple in keyword_list[:20]:
-                sum_of_frequencies += word_tuple[1]
-            normalized_keywords = [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list[:20]]
-            print()
-            # user_index[user_id] =
+            if len(keyword_list) >= mean_keywords_per_user:
+                for word_tuple in keyword_list[:mean_keywords_per_user]:
+                    sum_of_frequencies += word_tuple[1]
+                normalized_keywords = \
+                    [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list[:mean_keywords_per_user]]
+            else:
+                for word_tuple in keyword_list:
+                    sum_of_frequencies += word_tuple[1]
+                normalized_keywords = \
+                    [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list]
+            user_index[user_id] = normalized_keywords
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
+                          r"Indexes\normalized_user_to_keywords_list", user_index)
 
 
 if __name__ == "__main__":
-    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\\
-    # I_O\Indexes\user_to_keywords_list")
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
+    #                       r"Indexes\normalized_user_to_keywords_list")
     # print()
     c_corpus = CorpusMaster()
+    c_corpus.count_users_posts()
     # c_corpus.parse_tweets()
     # c_corpus.calculate_term_df()
     # c_corpus.create_climate_stopwords()
     # c_corpus.create_inverted_index()
     # c_corpus.create_user_index()
-    c_corpus.normalize_user_index()
+    # c_corpus.normalize_user_index()
