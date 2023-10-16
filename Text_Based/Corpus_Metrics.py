@@ -22,6 +22,7 @@ class CorpusMaster:
         # dd_int = functools.partial(defaultdict, int)
         # defaultdict(dd_int)
         self.word_to_user_inverted_index = dict()
+        self.user_index = dict()
 
     def parse_tweets(self):
         date_dictionary = defaultdict(int)
@@ -103,10 +104,40 @@ class CorpusMaster:
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\\"
                           r"keyword_to_userid_to frequency_inverted_index", self.word_to_user_inverted_index)
 
+    def create_user_index(self):
+        inverted_index = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\\"
+                                           r"I_O\Pivot\keyword_to_userid_to frequency_inverted_index")
+        for idx, (keyword, users_dict) in enumerate(inverted_index.items()):
+            print(idx)
+            for user_id, keyword_frequency in users_dict.items():
+                if user_id not in self.user_index:
+                    self.user_index[user_id] = [(keyword, keyword_frequency)]
+                else:
+                    self.user_index[user_id].append((keyword, keyword_frequency))
+        for user_id, frequency_list in self.user_index.items():
+            self.user_index[user_id] = sorted(self.user_index[user_id], key=itemgetter(1), reverse=True)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
+                          r"user_to_keywords_list", self.user_index)
+    def normalize_user_index(self):
+        user_index = tools.load_pickle(
+            r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\user_to_keywords_list")
+        for user_id, keyword_list in user_index.items():
+            sum_of_frequencies = 0
+            for word_tuple in keyword_list[:20]:
+                sum_of_frequencies += word_tuple[1]
+            normalized_keywords = [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list[:20]]
+            print()
+            # user_index[user_id] =
+
 
 if __name__ == "__main__":
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\\
+    # I_O\Indexes\user_to_keywords_list")
+    # print()
     c_corpus = CorpusMaster()
     # c_corpus.parse_tweets()
     # c_corpus.calculate_term_df()
     # c_corpus.create_climate_stopwords()
-    c_corpus.create_inverted_index()
+    # c_corpus.create_inverted_index()
+    # c_corpus.create_user_index()
+    c_corpus.normalize_user_index()
