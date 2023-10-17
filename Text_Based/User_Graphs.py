@@ -8,7 +8,7 @@ from collections import defaultdict
 class GraphCreator:
     def __init__(self):
         self.main_path = r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\\"
-        self.dict_of_user_similarity = defaultdict(list)
+        self.dict_of_user_distance = defaultdict(int)
         # An index with words as keys, and lists of users with the frequency that they used each word
         self.word_to_users_inverted_index = defaultdict(list)
 
@@ -21,22 +21,24 @@ class GraphCreator:
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\\"
                           r"I_O\Indexes\word_to_user_more_than_one_tweet", self.word_to_users_inverted_index)
 
-
     def create_relations(self):
-        user_keyword_vectors = \
-            tools.load_pickle(self.main_path + r"I_O\Indexes\normalized_user_to_keywords_list_more_than_one_tweet")
         self.word_to_users_inverted_index = \
-            tools.load_pickle(r"C:\Users\irmo\PycharmProjects\\"
-                              r"Climate_Change_Twitter\Text_Based\I_O\Indexes\word_to_user_more_than_one_tweet")
+            tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
+                              r"Indexes\word_to_user_more_than_one_tweet")
 
-        for user_id, list_of_word_freqs in user_keyword_vectors.items():
-            for word_tuple in list_of_word_freqs:
-                for idx, user_freq_tuple in enumerate(self.word_to_users_inverted_index[word_tuple[0]]):
+        for index, (word, list_of_user_freq) in enumerate(self.word_to_users_inverted_index.items()):
+            print(index)
+            # We iterate and calculate for couples of user ids, for each iteration we don't look back
+            # and the last element has already been calculated
+            for idx, user_freq_tuple in enumerate(list_of_user_freq[:-1]):
+                for inner_user_tuple in list_of_user_freq[idx+1:]:
                     # the users ids are always sorted in the tuple that are key in
-                    # self.dict_of_user_similarity
-
-                    # self.dict_of_user_similarity[()]
-                    print()
+                    # self.dict_of_user_similarity that way we will not have reversed duplicates
+                    min_id = min(user_freq_tuple[0], inner_user_tuple[0])
+                    max_id = max(user_freq_tuple[0], inner_user_tuple[0])
+                    self.dict_of_user_distance[(min_id, max_id)] += abs(user_freq_tuple[1] - inner_user_tuple[1])
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
+                          r"Results\user_distances", self.dict_of_user_distance)
 
 
 if __name__ == "__main__":
