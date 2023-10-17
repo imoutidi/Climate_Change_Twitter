@@ -121,22 +121,26 @@ class CorpusMaster:
     def create_user_index(self):
         inverted_index = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\\"
                                            r"I_O\Pivot\keyword_to_userid_to frequency_inverted_index")
+        user_to_post_count = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\\"
+                                               r"I_O\Pivot\user_to_post_count_dict")
         for idx, (keyword, users_dict) in enumerate(inverted_index.items()):
             print(idx)
             for user_id, keyword_frequency in users_dict.items():
-                if user_id not in self.user_index:
-                    self.user_index[user_id] = [(keyword, keyword_frequency)]
-                else:
-                    self.user_index[user_id].append((keyword, keyword_frequency))
+                if user_to_post_count[user_id] > 1:
+                    if user_id not in self.user_index:
+                        self.user_index[user_id] = [(keyword, keyword_frequency)]
+                    else:
+                        self.user_index[user_id].append((keyword, keyword_frequency))
         for user_id, frequency_list in self.user_index.items():
             self.user_index[user_id] = sorted(self.user_index[user_id], key=itemgetter(1), reverse=True)
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
-                          r"user_to_keywords_list", self.user_index)
+                          r"user_to_keywords_list_more_than_one_tweet", self.user_index)
 
     @staticmethod
     def normalize_user_index():
         user_index = tools.load_pickle(
-            r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\user_to_keywords_list")
+            r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
+            r"user_to_keywords_list_more_than_one_tweet")
         counter = 0
         for user_id, k_list in user_index.items():
             counter += len(k_list)
@@ -156,18 +160,17 @@ class CorpusMaster:
                     [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list]
             user_index[user_id] = normalized_keywords
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
-                          r"Indexes\normalized_user_to_keywords_list", user_index)
+                          r"Indexes\normalized_user_to_keywords_list_more_than_one_tweet", user_index)
 
 
 if __name__ == "__main__":
-    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
-    #                       r"Indexes\normalized_user_to_keywords_list")
-    # print()
+    a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\normalized_user_to_keywords_list_more_than_one_tweet")
+    print()
     c_corpus = CorpusMaster()
-    c_corpus.count_users_posts()
+    # c_corpus.count_users_posts()
     # c_corpus.parse_tweets()
     # c_corpus.calculate_term_df()
     # c_corpus.create_climate_stopwords()
     # c_corpus.create_inverted_index()
     # c_corpus.create_user_index()
-    # c_corpus.normalize_user_index()
+    c_corpus.normalize_user_index()
