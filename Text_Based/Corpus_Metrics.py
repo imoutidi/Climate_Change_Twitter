@@ -127,7 +127,7 @@ class CorpusMaster:
             print(idx)
             for user_id, keyword_frequency in users_dict.items():
                 # Users with more than X number of tweets
-                if user_to_post_count[user_id] > 2:
+                if user_to_post_count[user_id] > 4:
                     if user_id not in self.user_index:
                         self.user_index[user_id] = [(keyword, keyword_frequency)]
                     else:
@@ -135,13 +135,13 @@ class CorpusMaster:
         for user_id, frequency_list in self.user_index.items():
             self.user_index[user_id] = sorted(self.user_index[user_id], key=itemgetter(1), reverse=True)
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
-                          r"user_to_keywords_list_more_than_two_tweets", self.user_index)
+                          r"user_to_keywords_list_more_than_four_tweets", self.user_index)
 
     @staticmethod
     def normalize_user_index():
         user_index = tools.load_pickle(
             r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
-            r"user_to_keywords_list_more_than_two_tweets")
+            r"user_to_keywords_list_more_than_four_tweets")
         counter = 0
         for user_id, k_list in user_index.items():
             counter += len(k_list)
@@ -164,7 +164,7 @@ class CorpusMaster:
                      if k_word[1] / sum_of_frequencies > 0.01]
             user_index[user_id] = normalized_keywords
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
-                          r"Indexes\normalized_user_to_keywords_list_more_than_two_tweets", user_index)
+                          r"Indexes\normalized_user_to_keywords_list_more_than_four_tweets", user_index)
 
 
 if __name__ == "__main__":
