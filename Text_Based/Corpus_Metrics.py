@@ -126,7 +126,8 @@ class CorpusMaster:
         for idx, (keyword, users_dict) in enumerate(inverted_index.items()):
             print(idx)
             for user_id, keyword_frequency in users_dict.items():
-                if user_to_post_count[user_id] > 1:
+                # Users with more than X number of tweets
+                if user_to_post_count[user_id] > 2:
                     if user_id not in self.user_index:
                         self.user_index[user_id] = [(keyword, keyword_frequency)]
                     else:
@@ -134,17 +135,18 @@ class CorpusMaster:
         for user_id, frequency_list in self.user_index.items():
             self.user_index[user_id] = sorted(self.user_index[user_id], key=itemgetter(1), reverse=True)
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
-                          r"user_to_keywords_list_more_than_one_tweet", self.user_index)
+                          r"user_to_keywords_list_more_than_two_tweets", self.user_index)
 
     @staticmethod
     def normalize_user_index():
         user_index = tools.load_pickle(
             r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
-            r"user_to_keywords_list_more_than_one_tweet")
+            r"user_to_keywords_list_more_than_two_tweets")
         counter = 0
         for user_id, k_list in user_index.items():
             counter += len(k_list)
         mean_keywords_per_user = math.floor(counter/len(user_index))
+        print()
 
         for user_id, keyword_list in user_index.items():
             sum_of_frequencies = 0
@@ -152,20 +154,20 @@ class CorpusMaster:
                 for word_tuple in keyword_list[:mean_keywords_per_user]:
                     sum_of_frequencies += word_tuple[1]
                 normalized_keywords = \
-                    [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list[:mean_keywords_per_user]]
+                    [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list[:mean_keywords_per_user]
+                     if k_word[1] / sum_of_frequencies > 0.01]
             else:
                 for word_tuple in keyword_list:
                     sum_of_frequencies += word_tuple[1]
                 normalized_keywords = \
-                    [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list]
+                    [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list
+                     if k_word[1] / sum_of_frequencies > 0.01]
             user_index[user_id] = normalized_keywords
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
-                          r"Indexes\normalized_user_to_keywords_list_more_than_one_tweet", user_index)
+                          r"Indexes\normalized_user_to_keywords_list_more_than_two_tweets", user_index)
 
 
 if __name__ == "__main__":
-    a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\normalized_user_to_keywords_list_more_than_one_tweet")
-    print()
     c_corpus = CorpusMaster()
     # c_corpus.count_users_posts()
     # c_corpus.parse_tweets()
