@@ -3,6 +3,7 @@ import math
 from operator import itemgetter
 from Tool_Pack import tools
 from collections import defaultdict
+import time
 
 
 class GraphCreator:
@@ -67,7 +68,9 @@ class GraphCreator:
             tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
                               r"Indexes\word_to_user_more_than_four_tweets")
         user_similarities = dict()
+        partition_count = 0
 
+        # start_time = time.perf_counter()
         for idx, (user_id, keywords) in enumerate(user_to_words_index.items()):
             print(idx)
             current_user_commons = set()
@@ -78,13 +81,16 @@ class GraphCreator:
             for inner_user_id in current_user_commons:
                 min_id = min(user_id, inner_user_id)
                 max_id = max(user_id, inner_user_id)
-                if (min_id, max_id) not in user_similarities:
+
+                if (min_id, max_id) not in user_similarities and user_id != inner_user_id:
                     user_similarity = self.calculate_similarity(keywords, user_to_words_index[inner_user_id])
                     if user_similarity > 0.01:
                         user_similarities[(min_id, max_id)] = user_similarity
-            print()
-        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
-                          r"finalized_indexes\user_similarities", user_similarities)
+            #     print("Processing time: " + str(time.perf_counter() - start_time) + " seconds")
+            if idx % 10000 == 0:
+                tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
+                                  r"finalized_indexes\Partitioned_Distances\user_similarities", user_similarities)
+
 
     @staticmethod
     def calculate_similarity(user_set1, user_set2):
