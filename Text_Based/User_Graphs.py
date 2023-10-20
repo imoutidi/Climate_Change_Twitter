@@ -66,6 +66,7 @@ class GraphCreator:
         self.word_to_users_inverted_index = \
             tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
                               r"Indexes\word_to_user_more_than_four_tweets")
+        user_similarities = dict()
 
         for idx, (user_id, keywords) in enumerate(user_to_words_index.items()):
             print(idx)
@@ -75,12 +76,15 @@ class GraphCreator:
                 for user_tuple in users_of_the_word:
                     current_user_commons.add(user_tuple[0])
             for inner_user_id in current_user_commons:
-                self.calculate_similarity(keywords, user_to_words_index[inner_user_id])
-
-
+                min_id = min(user_id, inner_user_id)
+                max_id = max(user_id, inner_user_id)
+                if (min_id, max_id) not in user_similarities:
+                    user_similarity = self.calculate_similarity(keywords, user_to_words_index[inner_user_id])
+                    if user_similarity > 0.01:
+                        user_similarities[(min_id, max_id)] = user_similarity
             print()
-        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
-                          r"Pivot\common_words_users_index", self.common_words_users_index)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
+                          r"finalized_indexes\user_similarities", user_similarities)
 
     @staticmethod
     def calculate_similarity(user_set1, user_set2):
@@ -94,7 +98,10 @@ class GraphCreator:
         common_set = u1_set.intersection(u2_set)
         uncommon_set1 = u1_set.difference(common_set)
         uncommon_set2 = u2_set.difference(common_set)
-        if len(common_set) > 5:
+        # We get only the very connected user couples.
+        # The number 6 is calculated based on the average
+        # number of keyword each user has.
+        if len(common_set) > 6:
             # Do the calculations
             for common in common_set:
                 user_similarity -= abs(user_set1[common] - user_set2[common])
@@ -102,9 +109,9 @@ class GraphCreator:
                 user_similarity -= user_set1[uncommon]
             for uncommon in uncommon_set2:
                 user_similarity -= user_set2[uncommon]
-            print()
         else:
             user_similarity = 0
+        return user_similarity
 
     @staticmethod
     def transform_user_to_keyword_index():
