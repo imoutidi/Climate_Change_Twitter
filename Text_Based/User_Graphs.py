@@ -70,8 +70,8 @@ class GraphCreator:
         for idx, (user_id, keywords) in enumerate(user_to_words_index.items()):
             print(idx)
             current_user_commons = set()
-            for word_tuple in keywords:
-                users_of_the_word = self.word_to_users_inverted_index[word_tuple[0]]
+            for current_keyword, current_frequency in keywords.items():
+                users_of_the_word = self.word_to_users_inverted_index[current_keyword]
                 for user_tuple in users_of_the_word:
                     current_user_commons.add(user_tuple[0])
             for inner_user_id in current_user_commons:
@@ -83,18 +83,28 @@ class GraphCreator:
                           r"Pivot\common_words_users_index", self.common_words_users_index)
 
     @staticmethod
-    def calculate_similarity(user_vector1, user_vector2):
+    def calculate_similarity(user_set1, user_set2):
+        user_similarity = 2
         u1_set = set()
         u2_set = set()
-        for keyword_tuple1, keyword_tuple2 in zip(user_vector1, user_vector2):
-            u1_set.add(keyword_tuple1[0])
-            u2_set.add(keyword_tuple2[0])
-        common_words = u1_set.union(u2_set)
-        print()
-        if len(common_words) > 10:
+        for k_word in user_set1:
+            u1_set.add(k_word)
+        for k_word in user_set2:
+            u2_set.add(k_word)
+        common_set = u1_set.intersection(u2_set)
+        uncommon_set1 = u1_set.difference(common_set)
+        uncommon_set2 = u2_set.difference(common_set)
+        if len(common_set) > 5:
             # Do the calculations
-            
+            for common in common_set:
+                user_similarity -= abs(user_set1[common] - user_set2[common])
+            for uncommon in uncommon_set1:
+                user_similarity -= user_set1[uncommon]
+            for uncommon in uncommon_set2:
+                user_similarity -= user_set2[uncommon]
             print()
+        else:
+            user_similarity = 0
 
     @staticmethod
     def transform_user_to_keyword_index():
@@ -114,5 +124,5 @@ if __name__ == "__main__":
     g_creator = GraphCreator()
     # g_creator.create_inverted_index()
     # g_creator.create_relations()
-    g_creator.transform_user_to_keyword_index()
-    # g_creator.create_common_words_users_index()
+    # g_creator.transform_user_to_keyword_index()
+    g_creator.create_common_words_users_index()
