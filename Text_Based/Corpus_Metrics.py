@@ -168,6 +168,9 @@ class CorpusMaster:
 
 
 if __name__ == "__main__":
+    a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
+                          r"finalized_indexes\Partitioned_Distances\user_similarities")
+    print(len(a))
     c_corpus = CorpusMaster()
     # c_corpus.count_users_posts()
     # c_corpus.parse_tweets()
