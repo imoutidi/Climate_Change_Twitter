@@ -80,6 +80,8 @@ class CorpusMaster:
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\mega_stop_words",
                           self.twitter_stopwords)
 
+
+    # TODO here convert the code to process tweets per year.
     def count_users_posts(self):
         for folder_index in range(16):
             print(folder_index)
@@ -90,7 +92,6 @@ class CorpusMaster:
                     self.user_to_post_count[tweet_obj.author.id] += 1
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
                           r"Pivot\user_to_post_count_dict", self.user_to_post_count)
-
 
     def create_inverted_index(self):
         for folder_index in range(16):
@@ -168,9 +169,11 @@ class CorpusMaster:
 
 
 if __name__ == "__main__":
-    a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
-                          r"finalized_indexes\Partitioned_Distances\user_similarities")
-    print(len(a))
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
+    #                       r"finalized_indexes\Partitioned_Distances\user_similarities")
+    b = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
+                          r"Tweet_Documents_Distance\2017\Distances_Parts\1_2017")
+    print()
     c_corpus = CorpusMaster()
     # c_corpus.count_users_posts()
     # c_corpus.parse_tweets()

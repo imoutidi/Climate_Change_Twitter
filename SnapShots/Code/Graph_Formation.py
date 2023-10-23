@@ -165,7 +165,6 @@ class ContentGraph:
                     text_file.write(tweet_text + "\n")
 
 
-
     def community_wordclouds(self):
         self.top_community_nodes = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
                                                      r"SnapShots\I_O\Graphs\\" + str(self.year) + r"\communities")

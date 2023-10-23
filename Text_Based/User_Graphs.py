@@ -93,12 +93,14 @@ class GraphCreator:
                                   r"finalized_indexes\Partitioned_Distances\user_similarities", user_similarities)
                 tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
                                   r"finalized_indexes\Partitioned_Distances\last_user_id_and_idx", (user_id, idx))
+
     def create_graph(self):
         user_similarities = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
                                               r"Indexes\finalized_indexes\Partitioned_Distances\user_similarities")
         for user_tuple, similarity in user_similarities.items():
             print()
             self.overall_network.add_edge(user_tuple[0], user_tuple[1], weight=similarity)
+
 
 
 
