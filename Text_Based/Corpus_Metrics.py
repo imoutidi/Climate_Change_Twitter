@@ -80,44 +80,53 @@ class CorpusMaster:
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\mega_stop_words",
                           self.twitter_stopwords)
 
-
     # TODO here convert the code to process tweets per year.
     def count_users_posts(self):
-        for folder_index in range(16):
-            print(folder_index)
-            for filename in os.listdir(self.input_path + str(folder_index)):
-                tweet_records = tools.load_pickle(self.input_path + str(folder_index) + r"\\" + filename)
-                # iterate on the corpus tweets
-                for tweet_obj in tweet_records:
-                    self.user_to_post_count[tweet_obj.author.id] += 1
-        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
-                          r"Pivot\user_to_post_count_dict", self.user_to_post_count)
+        for year in range(2006, 2020):
+            print(year)
+            if not os.path.exists(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
+                                  r"Text_Based\I_O\Pivot\Per_Year\\" + str(year)):
+                os.makedirs(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\\"
+                            r"Text_Based\I_O\Pivot\Per_Year\\" + str(year))
+
+            for folder_index in range(16):
+                print(folder_index)
+                for filename in os.listdir(self.input_path + str(folder_index)):
+                    tweet_records = tools.load_pickle(self.input_path + str(folder_index) + r"\\" + filename)
+                    # iterate on the corpus tweets
+                    for tweet_obj in tweet_records:
+                        if tweet_obj.created_at.year == year:
+                            print()
+                            self.user_to_post_count[tweet_obj.author.id] += 1
+            tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
+                              r"Pivot\user_to_post_count_dict_" + str(year), self.user_to_post_count)
 
     def create_inverted_index(self):
-        for folder_index in range(16):
-            print(folder_index)
-            for filename in os.listdir(self.input_path + str(folder_index)):
-                tweet_records = tools.load_pickle(self.input_path + str(folder_index) + r"\\" + filename)
-                # iterate on the corpus tweets
-                for tweet_obj in tweet_records:
-                    tweet_text = tweet_obj.full_text
-                    word_list = tweet_text.split()
-                    # Remove URLs
-                    clean_urls = [word.lower() for word in word_list if not re.match(r'https?://\S+', word)]
-                    no_specials = [word.strip(":;'\"?.,<>*(){}[]!-_+=") for word in clean_urls]
-                    clean_apostrophes = [word[:-2] if word.endswith("'s") else word for word in no_specials]
-                    for clean_word in clean_apostrophes:
-                        if clean_word not in self.twitter_stopwords:
-                            if clean_word not in self.word_to_user_inverted_index:
-                                self.word_to_user_inverted_index[clean_word] = dict()
-                                self.word_to_user_inverted_index[clean_word][tweet_obj.author.id] = 1
-                            else:
-                                if tweet_obj.author.id not in self.word_to_user_inverted_index[clean_word]:
+        for year in range(2006, 2020):
+            for folder_index in range(16):
+                print(folder_index)
+                for filename in os.listdir(self.input_path + str(folder_index)):
+                    tweet_records = tools.load_pickle(self.input_path + str(folder_index) + r"\\" + filename)
+                    # iterate on the corpus tweets
+                    for tweet_obj in tweet_records:
+                        tweet_text = tweet_obj.full_text
+                        word_list = tweet_text.split()
+                        # Remove URLs
+                        clean_urls = [word.lower() for word in word_list if not re.match(r'https?://\S+', word)]
+                        no_specials = [word.strip(":;'\"?.,<>*(){}[]!-_+=") for word in clean_urls]
+                        clean_apostrophes = [word[:-2] if word.endswith("'s") else word for word in no_specials]
+                        for clean_word in clean_apostrophes:
+                            if clean_word not in self.twitter_stopwords:
+                                if clean_word not in self.word_to_user_inverted_index:
+                                    self.word_to_user_inverted_index[clean_word] = dict()
                                     self.word_to_user_inverted_index[clean_word][tweet_obj.author.id] = 1
                                 else:
-                                    self.word_to_user_inverted_index[clean_word][tweet_obj.author.id] += 1
-        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\\"
-                          r"keyword_to_userid_to frequency_inverted_index", self.word_to_user_inverted_index)
+                                    if tweet_obj.author.id not in self.word_to_user_inverted_index[clean_word]:
+                                        self.word_to_user_inverted_index[clean_word][tweet_obj.author.id] = 1
+                                    else:
+                                        self.word_to_user_inverted_index[clean_word][tweet_obj.author.id] += 1
+            tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\\"
+                              r"keyword_to_userid_to frequency_inverted_index", self.word_to_user_inverted_index)
 
     def create_user_index(self):
         inverted_index = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\\"
@@ -171,14 +180,14 @@ class CorpusMaster:
 if __name__ == "__main__":
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
     #                       r"finalized_indexes\Partitioned_Distances\user_similarities")
-    b = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
-                          r"Tweet_Documents_Distance\2017\Distances_Parts\1_2017")
-    print()
+    # b = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
+    #                       r"Tweet_Documents_Distance\2017\Distances_Parts\1_2017")
+    # print()
     c_corpus = CorpusMaster()
-    # c_corpus.count_users_posts()
+    c_corpus.count_users_posts()
     # c_corpus.parse_tweets()
     # c_corpus.calculate_term_df()
     # c_corpus.create_climate_stopwords()
     # c_corpus.create_inverted_index()
     # c_corpus.create_user_index()
-    c_corpus.normalize_user_index()
+    # c_corpus.normalize_user_index()
