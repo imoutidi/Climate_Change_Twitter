@@ -63,6 +63,8 @@ class GraphCreator:
         # tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
         #                   r"Results\user_distances", self.dict_of_user_distance)
 
+    # TODO calcuate mean and std of user similarities
+    # set new treshholds.
     def create_common_words_users_index(self):
         user_to_words_index = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\\"
                                                 r"I_O\Indexes\finalized_indexes\user_to_word_dict")

@@ -1,6 +1,7 @@
 import os
 import re
 import math
+import numpy as np
 from operator import itemgetter
 from nltk.corpus import stopwords
 from Tool_Pack import tools
@@ -176,18 +177,32 @@ class CorpusMaster:
         tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
                           r"Indexes\normalized_user_to_keywords_list_more_than_four_tweets", user_index)
 
+    @staticmethod
+    def metrics_of_user_similarities():
+        sims = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
+                                 r"finalized_indexes\Partitioned_Distances\user_similarities")
+        values = list(sims.values())
+
+        sims_array = np.array(values)
+        mean = np.mean(sims_array)
+        std_dev = np.std(sims_array)
+        print(mean, std_dev)
+        # mean = 0.3661729998829109
+        # std_dev = 0.22546568640670767
+
 
 if __name__ == "__main__":
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
     #                       r"finalized_indexes\Partitioned_Distances\user_similarities")
     # b = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
     #                       r"Tweet_Documents_Distance\2017\Distances_Parts\1_2017")
-    # print()
+    print()
     c_corpus = CorpusMaster()
-    c_corpus.count_users_posts()
+    # c_corpus.count_users_posts()
     # c_corpus.parse_tweets()
     # c_corpus.calculate_term_df()
     # c_corpus.create_climate_stopwords()
     # c_corpus.create_inverted_index()
     # c_corpus.create_user_index()
     # c_corpus.normalize_user_index()
+    c_corpus.metrics_of_user_similarities()
