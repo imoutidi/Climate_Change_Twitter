@@ -63,7 +63,6 @@ class GraphCreator:
         # tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
         #                   r"Results\user_distances", self.dict_of_user_distance)
 
-    # TODO calcuate mean and std of user similarities
     # set new treshholds.
     def create_common_words_users_index(self):
         user_to_words_index = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\\"
@@ -102,11 +101,6 @@ class GraphCreator:
         for user_tuple, similarity in user_similarities.items():
             print()
             self.overall_network.add_edge(user_tuple[0], user_tuple[1], weight=similarity)
-
-
-
-
-
 
     @staticmethod
     def calculate_similarity(user_set1, user_set2):
@@ -150,6 +144,9 @@ class GraphCreator:
 
 
 if __name__ == "__main__":
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\\"
+    #                       r"Per_Year\2008\user_to_post_count_dict_2008")
+    # print()
     g_creator = GraphCreator()
     # g_creator.create_inverted_index()
     # g_creator.create_relations()
