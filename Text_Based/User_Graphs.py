@@ -17,6 +17,7 @@ class GraphCreator:
         self.common_words_users_index = defaultdict(set)
 
     def create_inverted_index(self):
+
         user_keyword_dict = \
             tools.load_pickle(self.main_path + r"I_O\Indexes\normalized_user_to_keywords_list_more_than_four_tweets")
         for user_id, keyword_list in user_keyword_dict.items():

@@ -160,32 +160,35 @@ class CorpusMaster:
 
     @staticmethod
     def normalize_user_index():
-        user_index = tools.load_pickle(
-            r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
-            r"user_to_keywords_list_more_than_four_tweets")
-        counter = 0
-        for user_id, k_list in user_index.items():
-            counter += len(k_list)
-        mean_keywords_per_user = math.floor(counter/len(user_index))
-        print()
+        for year in range(2006, 2010):
+            user_index = tools.load_pickle(
+                r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\\" + str(year) +
+                r"\user_to_keywords_list_more_than_four_tweets_" + str(year))
+            counter = 0
+            for user_id, k_list in user_index.items():
+                counter += len(k_list)
+            mean_keywords_per_user = 0
+            if len(user_index) > 0:
+                mean_keywords_per_user = math.floor(counter/len(user_index))
 
-        for user_id, keyword_list in user_index.items():
-            sum_of_frequencies = 0
-            if len(keyword_list) >= mean_keywords_per_user:
-                for word_tuple in keyword_list[:mean_keywords_per_user]:
-                    sum_of_frequencies += word_tuple[1]
-                normalized_keywords = \
-                    [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list[:mean_keywords_per_user]
-                     if k_word[1] / sum_of_frequencies > 0.01]
-            else:
-                for word_tuple in keyword_list:
-                    sum_of_frequencies += word_tuple[1]
-                normalized_keywords = \
-                    [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list
-                     if k_word[1] / sum_of_frequencies > 0.01]
-            user_index[user_id] = normalized_keywords
-        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
-                          r"Indexes\normalized_user_to_keywords_list_more_than_four_tweets", user_index)
+            for user_id, keyword_list in user_index.items():
+                sum_of_frequencies = 0
+                if len(keyword_list) >= mean_keywords_per_user:
+                    for word_tuple in keyword_list[:mean_keywords_per_user]:
+                        sum_of_frequencies += word_tuple[1]
+                    normalized_keywords = \
+                        [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list[:mean_keywords_per_user]
+                         if k_word[1] / sum_of_frequencies > 0.01]
+                else:
+                    for word_tuple in keyword_list:
+                        sum_of_frequencies += word_tuple[1]
+                    normalized_keywords = \
+                        [(k_word[0], k_word[1] / sum_of_frequencies) for k_word in keyword_list
+                         if k_word[1] / sum_of_frequencies > 0.01]
+                user_index[user_id] = normalized_keywords
+            tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\\"
+                              + str(year) + r"\normalized_user_to_keywords_list_more_than_four_tweets_" + str(year),
+                              user_index)
 
     @staticmethod
     def metrics_of_user_similarities():
@@ -202,8 +205,8 @@ class CorpusMaster:
 
 
 if __name__ == "__main__":
-    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
-    #                       r"finalized_indexes\Partitioned_Distances\user_similarities")
+    # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\2019\\"
+    #                       r"normalized_user_to_keywords_list_more_than_four_tweets_2019")
     # b = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\SnapShots\I_O\\"
     #                       r"Tweet_Documents_Distance\2017\Distances_Parts\1_2017")
     # print()
@@ -213,6 +216,6 @@ if __name__ == "__main__":
     # c_corpus.calculate_term_df()
     # c_corpus.create_climate_stopwords()
     # c_corpus.create_inverted_index()
-    c_corpus.create_user_index()
-    # c_corpus.normalize_user_index()
+    # c_corpus.create_user_index()
+    c_corpus.normalize_user_index()
     # c_corpus.metrics_of_user_similarities()
