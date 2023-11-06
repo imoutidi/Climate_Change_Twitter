@@ -160,7 +160,7 @@ class CorpusMaster:
 
     @staticmethod
     def normalize_user_index():
-        for year in range(2006, 2010):
+        for year in range(2006, 2020):
             user_index = tools.load_pickle(
                 r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\\" + str(year) +
                 r"\user_to_keywords_list_more_than_four_tweets_" + str(year))
@@ -211,11 +211,11 @@ if __name__ == "__main__":
     #                       r"Tweet_Documents_Distance\2017\Distances_Parts\1_2017")
     # print()
     c_corpus = CorpusMaster()
-    # c_corpus.count_users_posts()
+    c_corpus.count_users_posts()
     # c_corpus.parse_tweets()
     # c_corpus.calculate_term_df()
     # c_corpus.create_climate_stopwords()
-    # c_corpus.create_inverted_index()
-    # c_corpus.create_user_index()
+    c_corpus.create_inverted_index()
+    c_corpus.create_user_index()
     c_corpus.normalize_user_index()
     # c_corpus.metrics_of_user_similarities()
