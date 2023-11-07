@@ -147,7 +147,8 @@ class CorpusMaster:
                 print(idx)
                 for user_id, keyword_frequency in users_dict.items():
                     # Users with more than X number of tweets
-                    if user_to_post_count[user_id] > 4:
+                    # Threshold warning
+                    if user_to_post_count[user_id] > 2:
                         if user_id not in self.user_index:
                             self.user_index[user_id] = [(keyword, keyword_frequency)]
                         else:
@@ -156,14 +157,14 @@ class CorpusMaster:
                 self.user_index[user_id] = sorted(self.user_index[user_id], key=itemgetter(1), reverse=True)
             tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\\"
                               r"I_O\Pivot\Per_Year\\" + str(year) +
-                              r"\user_to_keywords_list_more_than_four_tweets_" + str(year), self.user_index)
+                              r"\user_to_keywords_list_more_than_two_tweets_" + str(year), self.user_index)
 
     @staticmethod
     def normalize_user_index():
         for year in range(2006, 2020):
             user_index = tools.load_pickle(
                 r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\\" + str(year) +
-                r"\user_to_keywords_list_more_than_four_tweets_" + str(year))
+                r"\user_to_keywords_list_more_than_two_tweets_" + str(year))
             counter = 0
             for user_id, k_list in user_index.items():
                 counter += len(k_list)
@@ -187,7 +188,7 @@ class CorpusMaster:
                          if k_word[1] / sum_of_frequencies > 0.01]
                 user_index[user_id] = normalized_keywords
             tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\\"
-                              + str(year) + r"\normalized_user_to_keywords_list_more_than_four_tweets_" + str(year),
+                              + str(year) + r"\normalized_user_to_keywords_list_more_than_two_tweets_" + str(year),
                               user_index)
 
     @staticmethod
@@ -211,13 +212,16 @@ if __name__ == "__main__":
     #                       r"Pivot\Per_Year\2017\user_similarities_2017")
     print()
     c_corpus = CorpusMaster()
-    c_corpus.count_users_posts()
+    # TODO undo this comment
+    # c_corpus.count_users_posts()
+
     # c_corpus.parse_tweets()
     # c_corpus.calculate_term_df()
     # c_corpus.create_climate_stopwords()
 
     # Those three create the similarities
-    c_corpus.create_inverted_index()
+    # TODO undo this comment
+    # c_corpus.create_inverted_index()
     c_corpus.create_user_index()
     c_corpus.normalize_user_index()
 

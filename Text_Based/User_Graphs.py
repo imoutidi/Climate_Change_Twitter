@@ -17,28 +17,27 @@ class GraphCreator:
         self.common_words_users_index = defaultdict(set)
 
     def create_inverted_index(self):
-        for year in range(2006, 2020):
+        for year in range(2006, 2018):
             print(year)
             self.word_to_users_inverted_index = defaultdict(list)
             user_keyword_dict = \
                 tools.load_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
-                                  r"\normalized_user_to_keywords_list_more_than_four_tweets_" + str(year))
-            print()
+                                  r"\normalized_user_to_keywords_list_more_than_two_tweets_" + str(year))
             for user_id, keyword_list in user_keyword_dict.items():
                 for keyword_tuple in keyword_list:
                     self.word_to_users_inverted_index[keyword_tuple[0]].append((user_id, keyword_tuple[1]))
             tools.save_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
-                              r"\word_to_user_more_than_four_tweets_" + str(year),
+                              r"\word_to_user_more_than_two_tweets_" + str(year),
                               self.word_to_users_inverted_index)
 
     # This method is deprecated
     def create_relations(self):
         a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Indexes\\"
-                              r"normalized_user_to_keywords_list_more_than_four_tweets")
+                              r"normalized_user_to_keywords_list_more_than_two_tweets")
 
         self.word_to_users_inverted_index = \
             tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
-                              r"Indexes\word_to_user_more_than_four_tweets")
+                              r"Indexes\word_to_user_more_than_two_tweets")
         print()
 
         all_distances = 0
@@ -71,12 +70,12 @@ class GraphCreator:
         #                   r"Results\user_distances", self.dict_of_user_distance)
 
     def create_common_words_users_index(self):
-        for year in range(2006, 2020):
+        for year in range(2006, 2018):
             print(year)
             user_to_words_index = tools.load_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
-                                                    r"\user_to_word_dict_" + str(year))
+                                                    r"\user_to_word_dict_more_than_two" + str(year))
             self.word_to_users_inverted_index = tools.load_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
-                                                                  r"\word_to_user_more_than_four_tweets_" + str(year))
+                                                                  r"\word_to_user_more_than_two_tweets_" + str(year))
             user_similarities = dict()
 
             # start_time = time.perf_counter()
@@ -92,16 +91,17 @@ class GraphCreator:
 
                     if (min_id, max_id) not in user_similarities and user_id != inner_user_id:
                         user_similarity = self.calculate_similarity(keywords, user_to_words_index[inner_user_id])
+                        # Threshold warning
                         if user_similarity > 0.1:
                             user_similarities[(min_id, max_id)] = user_similarity
                 #     print("Processing time: " + str(time.perf_counter() - start_time) + " seconds")
                 if idx % 10000 == 0:
                     tools.save_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
-                                      r"\user_similarities_" + str(year), user_similarities)
+                                      r"\user_similarities_more_than_two_" + str(year), user_similarities)
                     tools.save_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
-                                      r"\last_user_id_and_idx_" + str(year), (user_id, idx))
+                                      r"\last_user_id_and_idx_more_than_two_" + str(year), (user_id, idx))
             tools.save_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
-                              r"\user_similarities_" + str(year), user_similarities)
+                              r"\user_similarities_more_than_two_" + str(year), user_similarities)
 
     def create_graph(self):
         user_similarities = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
@@ -138,17 +138,17 @@ class GraphCreator:
         return user_similarity
 
     def transform_user_to_keyword_index(self):
-        for year in range(2006, 2020):
+        for year in range(2006, 2018):
             user_to_word_dict = dict()
             user_to_word = tools.load_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
-                                             r"\normalized_user_to_keywords_list_more_than_four_tweets_" + str(year))
+                                             r"\normalized_user_to_keywords_list_more_than_two_tweets_" + str(year))
             for user_id, keyword_list in user_to_word.items():
                 temp_dict = dict()
                 for keyword_tuple in keyword_list:
                     temp_dict[keyword_tuple[0]] = keyword_tuple[1]
                 user_to_word_dict[user_id] = temp_dict
             tools.save_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
-                              r"\user_to_word_dict_" + str(year), user_to_word_dict)
+                              r"\user_to_word_dict_more_than_two_" + str(year), user_to_word_dict)
 
     # useful users per year.
     # 2006 0
@@ -170,8 +170,8 @@ class GraphCreator:
 if __name__ == "__main__":
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\\"
     #                       r"Per_Year\2008\user_to_post_count_dict_2008")
-    # print()
+    print("More than two!")
     g_creator = GraphCreator()
-    # g_creator.create_inverted_index()
-    # g_creator.transform_user_to_keyword_index()
+    g_creator.create_inverted_index()
+    g_creator.transform_user_to_keyword_index()
     g_creator.create_common_words_users_index()
