@@ -45,6 +45,18 @@ class UserGraph:
                           + str(self.year), self.top_community_nodes)
         return "ALL OK"
 
+    def investigate_community_similarities(self):
+        for outer_year in range(2008, 2018):
+            for inner_year in range(outer_year, 2018):
+                outer_community = tools.load_pickle(self.main_path + str(outer_year)
+                                                    + r"top_communities_" + str(outer_year))
+                inner_community = tools.load_pickle(self.main_path + str(inner_year)
+                                                    + r"top_communities_" + str(inner_year))
+
+                print()
+
+
+
 
 if __name__ == "__main__":
     for c_year in range(2006, 2018):
