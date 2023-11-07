@@ -21,9 +21,13 @@ class UserGraph:
                                               + r"\user_similarities_" + str(self.year))
         for user_tuple, similarity in user_similarities.items():
             self.u_graph.add_edge(user_tuple[0], user_tuple[1], weight=similarity)
+        print(len(self.u_graph))
             # self.content_graph.add_edge(int(edge_info[0]), int(edge_info[1]), weight=float(edge_info[2]))
 
     def community_detection(self, com_size_threshold=0.01):
+        if len(self.u_graph) == 0:
+            print("This year has not enough important users to form a meaningful graph. Exiting!")
+            return "Empty Graph"
         communities = nx.community.louvain_communities(self.u_graph, weight="weight", resolution=1,
                                                        seed=self.random_seed)
         self.content_coms = communities
@@ -39,6 +43,17 @@ class UserGraph:
         self.top_community_nodes = sorted(self.top_community_nodes, key=lambda x: len(x), reverse=True)
         tools.save_pickle(self.main_path + str(self.year) + r"\top_communities_"
                           + str(self.year), self.top_community_nodes)
+        return "ALL OK"
+
+
+if __name__ == "__main__":
+    for c_year in range(2006, 2018):
+        user_graph = UserGraph(c_year)
+        user_graph.populate_graph()
+        user_graph.community_detection()
+    # a = tools.load_pickle(
+    #     r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\2010\top_communities_2010")
+    # print()
 
 
 
