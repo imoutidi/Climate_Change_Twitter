@@ -18,7 +18,6 @@ class GraphCreator:
 
     def create_inverted_index(self):
         for year in range(2006, 2018):
-            print(year)
             self.word_to_users_inverted_index = defaultdict(list)
             user_keyword_dict = \
                 tools.load_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
@@ -73,7 +72,7 @@ class GraphCreator:
         for year in range(2006, 2018):
             print(year)
             user_to_words_index = tools.load_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
-                                                    r"\user_to_word_dict_more_than_two" + str(year))
+                                                    r"\user_to_word_dict_more_than_two_" + str(year))
             self.word_to_users_inverted_index = tools.load_pickle(self.main_path + r"I_O\Pivot\Per_Year\\" + str(year) +
                                                                   r"\word_to_user_more_than_two_tweets_" + str(year))
             user_similarities = dict()

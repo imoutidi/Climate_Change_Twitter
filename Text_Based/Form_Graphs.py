@@ -46,16 +46,17 @@ class UserGraph:
         return "ALL OK"
 
     def investigate_community_similarities(self):
-        for outer_year in range(2008, 2018):
-            for inner_year in range(outer_year, 2018):
-                outer_community = tools.load_pickle(self.main_path + str(outer_year)
-                                                    + r"top_communities_" + str(outer_year))
-                inner_community = tools.load_pickle(self.main_path + str(inner_year)
-                                                    + r"top_communities_" + str(inner_year))
-
-                print()
+        for current_year in range(2008, 2018):
+            current_communities = tools.load_pickle(self.main_path + str(current_year)
+                                                    + r"top_communities_" + str(current_year))
+            next_communities = tools.load_pickle(self.main_path + str(current_year)
+                                                 + r"top_communities_" + str(current_year))
+            for outer_comm
 
 
+
+
+            print()
 
 
 if __name__ == "__main__":

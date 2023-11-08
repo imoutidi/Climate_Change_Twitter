@@ -208,8 +208,8 @@ class CorpusMaster:
 if __name__ == "__main__":
     # a = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\2019\\"
     #                       r"normalized_user_to_keywords_list_more_than_four_tweets_2019")
-    # b = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\\"
-    #                       r"Pivot\Per_Year\2017\user_similarities_2017")
+    b = tools.load_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\\"
+                          r"Per_Year\2018\user_similarities_2018")
     print()
     c_corpus = CorpusMaster()
     # TODO undo this comment
