@@ -48,22 +48,21 @@ class UserGraph:
     def investigate_community_similarities(self):
         for current_year in range(2008, 2018):
             current_communities = tools.load_pickle(self.main_path + str(current_year)
-                                                    + r"top_communities_" + str(current_year))
-            next_communities = tools.load_pickle(self.main_path + str(current_year)
-                                                 + r"top_communities_" + str(current_year))
-            for outer_comm
-
-
-
-
-            print()
+                                                    + r"\top_communities_" + str(current_year))
+            next_communities = tools.load_pickle(self.main_path + str(current_year + 1)
+                                                 + r"\top_communities_" + str(current_year + 1))
+            for outer_community in current_communities:
+                for inner_community in next_communities:
+                    com_intersection = set(outer_community).intersection(set(inner_community))
+                    print()
 
 
 if __name__ == "__main__":
     for c_year in range(2006, 2018):
         user_graph = UserGraph(c_year)
-        user_graph.populate_graph()
-        user_graph.community_detection()
+        # user_graph.populate_graph()
+        # user_graph.community_detection()
+        user_graph.investigate_community_similarities()
     # a = tools.load_pickle(
     #     r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\2010\top_communities_2010")
     # print()
