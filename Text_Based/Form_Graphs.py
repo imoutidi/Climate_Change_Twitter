@@ -46,22 +46,39 @@ class UserGraph:
         return "ALL OK"
 
     def investigate_community_similarities(self):
-        for current_year in range(2008, 2018):
+        dict_of_year_overlaps = dict()
+        normalized_dict_of_overlaps = dict()
+        for current_year in range(2008, 2020):
+            list_of_list_com_overlaps = list()
+            normalized_list_of_list_overlaps = list()
             current_communities = tools.load_pickle(self.main_path + str(current_year)
                                                     + r"\top_communities_" + str(current_year))
             next_communities = tools.load_pickle(self.main_path + str(current_year + 1)
                                                  + r"\top_communities_" + str(current_year + 1))
             for outer_community in current_communities:
+                list_of_overlaps = list()
+                normalized_overlaps = list()
                 for inner_community in next_communities:
                     com_intersection = set(outer_community).intersection(set(inner_community))
-                    print()
+                    list_of_overlaps.append(len(com_intersection))
+                    if len(outer_community) <= len(inner_community):
+                        normalized_overlaps.append(len(com_intersection)/len(outer_community))
+                    else:
+                        normalized_overlaps.append(len(com_intersection)/len(inner_community))
+
+                list_of_list_com_overlaps.append(list_of_overlaps)
+                normalized_list_of_list_overlaps.append(normalized_overlaps)
+
+            dict_of_year_overlaps[(current_year, current_year+1)] = list_of_list_com_overlaps
+            normalized_dict_of_overlaps[(current_year, current_year+1)] = normalized_list_of_list_overlaps
+        print()
 
 
 if __name__ == "__main__":
-    for c_year in range(2006, 2018):
+    for c_year in range(2006, 2020):
         user_graph = UserGraph(c_year)
-        # user_graph.populate_graph()
-        # user_graph.community_detection()
+        user_graph.populate_graph()
+        user_graph.community_detection()
         user_graph.investigate_community_similarities()
     # a = tools.load_pickle(
     #     r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\2010\top_communities_2010")
