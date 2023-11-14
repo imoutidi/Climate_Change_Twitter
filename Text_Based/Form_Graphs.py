@@ -48,7 +48,7 @@ class UserGraph:
     def investigate_community_similarities(self):
         dict_of_year_overlaps = dict()
         normalized_dict_of_overlaps = dict()
-        for current_year in range(2008, 2020):
+        for current_year in range(2008, 2019):
             list_of_list_com_overlaps = list()
             normalized_list_of_list_overlaps = list()
             current_communities = tools.load_pickle(self.main_path + str(current_year)
@@ -71,14 +71,21 @@ class UserGraph:
 
             dict_of_year_overlaps[(current_year, current_year+1)] = list_of_list_com_overlaps
             normalized_dict_of_overlaps[(current_year, current_year+1)] = normalized_list_of_list_overlaps
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\\"
+                          r"Overlaps\dict_of_year_overlaps", dict_of_year_overlaps)
+        tools.save_pickle(r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\\"
+                          r"Overlaps\normalized_dict_of_overlaps", normalized_dict_of_overlaps)
+
+    def recognize_communities(self):
         print()
 
 
+
 if __name__ == "__main__":
-    for c_year in range(2006, 2020):
+    for c_year in range(2008, 2020):
         user_graph = UserGraph(c_year)
-        user_graph.populate_graph()
-        user_graph.community_detection()
+        # user_graph.populate_graph()
+        # user_graph.community_detection()
         user_graph.investigate_community_similarities()
     # a = tools.load_pickle(
     #     r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\2010\top_communities_2010")
