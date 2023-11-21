@@ -77,8 +77,17 @@ class UserGraph:
                           r"Overlaps\normalized_dict_of_overlaps", normalized_dict_of_overlaps)
 
     def recognize_communities(self):
-        print()
-
+        current_communities = tools.load_pickle(self.main_path + str(self.year)
+                                                + r"\top_communities_" + str(self.year))
+        users_to_keywords = tools.load_pickle(self.main_path + str(self.year) +
+                                              r"\user_to_keywords_list_more_than_two_tweets_" + str(self.year))
+        for c_community in current_communities:
+            com_word_frequencies = defaultdict(int)
+            for com_user in c_community:
+                user_word_list = users_to_keywords[com_user]
+                for word_tuple in user_word_list:
+                    com_word_frequencies[word_tuple[0]] += word_tuple[1]
+            print()
 
 
 if __name__ == "__main__":
@@ -86,7 +95,8 @@ if __name__ == "__main__":
         user_graph = UserGraph(c_year)
         # user_graph.populate_graph()
         # user_graph.community_detection()
-        user_graph.investigate_community_similarities()
+        # user_graph.investigate_community_similarities()
+        user_graph.recognize_communities()
     # a = tools.load_pickle(
     #     r"C:\Users\irmo\PycharmProjects\Climate_Change_Twitter\Text_Based\I_O\Pivot\Per_Year\2010\top_communities_2010")
     # print()
