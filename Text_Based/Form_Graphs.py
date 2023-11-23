@@ -77,17 +77,26 @@ class UserGraph:
                           r"Overlaps\normalized_dict_of_overlaps", normalized_dict_of_overlaps)
 
     def recognize_communities(self):
+        if not os.path.exists(self.main_path + str(self.year) + r"\Results"):
+            os.makedirs(self.main_path + str(self.year) + r"\Results")
         current_communities = tools.load_pickle(self.main_path + str(self.year)
                                                 + r"\top_communities_" + str(self.year))
         users_to_keywords = tools.load_pickle(self.main_path + str(self.year) +
                                               r"\user_to_keywords_list_more_than_two_tweets_" + str(self.year))
+        community_keywords_list = list()
         for c_community in current_communities:
             com_word_frequencies = defaultdict(int)
             for com_user in c_community:
                 user_word_list = users_to_keywords[com_user]
                 for word_tuple in user_word_list:
                     com_word_frequencies[word_tuple[0]] += word_tuple[1]
-            print()
+            temp_word_list = list()
+            for word, frequency in com_word_frequencies.items():
+                temp_word_list.append((word, frequency))
+            temp_word_list = sorted(temp_word_list, key=itemgetter(1), reverse=True)
+            community_keywords_list.append(temp_word_list)
+        tools.save_pickle(self.main_path + str(self.year) + r"\Results\community_keywords_list_" + str(self.year),
+                          community_keywords_list)
 
 
 if __name__ == "__main__":
